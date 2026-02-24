@@ -1,133 +1,436 @@
-;
-;				Thunder Keep
-;
+
 
 ;=========================================================================
-; Monster Generators
+; Monster Generators 
 ;=========================================================================
+; 1 - 4  NPC Monsters
+; 5      Flag
+; 6      Ammo Refill
+; 7      Sponge
+
 [mongendefs]
-nummongens=0
+nummongens= 40
+
+[mongen00]
+object= 6
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 53
+ymaze= 73
+single= 1
+
+[mongen01]
+object= 7
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 53
+ymaze= 52
+single= 1
+
+[mongen02]
+object= 6
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 74
+ymaze= 52
+single= 1
+
+[mongen03]
+object= 7
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 74
+ymaze= 73
+single= 1
+
+[mongen04]
+object= 6
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 45
+ymaze= 44
+single= 1
+
+[mongen05]
+object= 7
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 45
+ymaze= 81
+single= 1
+
+[mongen06]
+object= 6
+maxnum= 40
+chance= 50
+timer= 2000
+xmaze= 82
+ymaze= 81
+single= 1
+
+[mongen07]
+object= 7
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 82
+ymaze= 44
+single= 1
+
+[mongen08]
+object= 6
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 17
+ymaze= 58
+single= 1
+
+[mongen09]
+object= 7
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 17
+ymaze= 67
+single= 1
+
+[mongen10]
+object= 6
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 27
+ymaze= 58
+single= 1
+
+[mongen11]
+object= 7
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 27
+ymaze= 67
+single= 1
+
+[mongen12]
+object= 6
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 8
+ymaze= 47
+single= 1
+
+[mongen13]
+object= 7
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 39
+ymaze= 47
+single= 1
+
+[mongen14]
+object= 6
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 39
+ymaze= 78
+single= 1
+
+[mongen15]
+object= 7
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 8
+ymaze= 78
+single= 1
+
+[mongen16]
+object= 6
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 51
+ymaze= 117
+single= 1
+
+[mongen17]
+object= 6
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 65
+ymaze= 101
+single= 1
+
+[mongen18]
+object= 7
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 74
+ymaze= 100
+single= 1
+
+[mongen19]
+object= 7
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 52
+ymaze= 87
+single= 1
+
+[mongen20]
+object= 6
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 62
+ymaze= 88
+single= 1
+
+[mongen21]
+object= 7
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 75
+ymaze= 90
+single= 1
+
+[mongen22]
+object= 6
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 60
+ymaze= 110
+single= 1
+
+[mongen23]
+object= 7
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 69
+ymaze= 115
+single= 1
+
+[mongen24]
+object= 6
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 48
+ymaze= 8
+single= 1
+
+[mongen25]
+object= 7
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 48
+ymaze= 35
+single= 1
+
+[mongen26]
+object= 6
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 77
+ymaze= 36
+single= 1
+
+[mongen27]
+object= 7
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 78
+ymaze= 11
+single= 1
+
+[mongen28]
+object= 6
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 74
+ymaze= 34
+single= 1
+
+[mongen29]
+object= 7
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 56
+ymaze= 26
+single= 1
+
+[mongen30]
+object= 6
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 67
+ymaze= 13
+single= 1
+
+[mongen31]
+object= 7
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 56
+ymaze= 14
+single= 1
+
+[mongen32]
+object= 6
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 89
+ymaze= 77
+single= 1
+
+[mongen33]
+object= 7
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 115
+ymaze= 78
+single= 1
+
+[mongen34]
+object= 6
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 110
+ymaze= 71
+single= 1
+
+[mongen35]
+object= 7
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 119
+ymaze= 54
+single= 1
+
+[mongen36]
+object= 6
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 96
+ymaze= 56
+single= 1
+
+[mongen37]
+object= 7
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 101
+ymaze= 58
+single= 1
+
+[mongen38]
+object= 6
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 111
+ymaze= 64
+single= 1
+
+[mongen39]
+object= 7
+maxnum= 40
+chance= 50
+timer= 40000
+xmaze= 107
+ymaze= 48
+single= 1
+
+
 
 ;=========================================================================
-; Team Starting Area
+; Team Starting 
 ;=========================================================================
 [noteam]
-startx=55
-starty=75
-raisex=9
-raisey=12
+startx= 63
+starty= 63
+raisex= 63
+raisey= 63
+;starta= 90
 
-[chaos]
-startx=44
-starty=63
-raisex=9
-raisey=12
+[red]
+startx= 67
+starty= 8
+raisex= 49
+raisey= 30
+starta= 0
 
-[order]
-startx=85
-starty=62
-raisex=9
-raisey=12
+[blue]
+startx= 119
+starty= 61
+raisex= 100
+raisey= 72
+starta= 90
 
-[balance]
-startx=63
-starty=94
-raisex=9
-raisey=12
+[yellow]
+startx= 77
+starty= 117
+raisex= 68
+raisey= 105
+starta= 0
+
+[green]
+startx= 11
+starty= 62
+raisex= 9
+raisey= 69
+starta= 270
 
 ;=========================================================================
 ; Light
 ;=========================================================================
 [light]
-ambient=12
-outdoor=20
-intensity=96
+ambient= 10
+outdoor= 32
+intensity= 96
 
-;=========================================================================
-; Earthblood Pools
-;=========================================================================
-[earthblooddefs]
-numearthblood=7
+;========================================================================
+;Safe Zone Teleporters
+;========================================================================
+[safezonedefs]
+numsafezones=1
 
-[earthblood00]
-power=45
-power_original=50
-neutraltexture=1
-balancetexture=1
-ordertexture=1
-chaostexture=1
+[safezone01]
+trigger=1
 
-[earthblood01]
-power=50
-power_original=50
-neutraltexture=1
-balancetexture=1
-ordertexture=1
-chaostexture=1
 
-[earthblood02]
-power=35
-neutraltexture=1
-balancetexture=1
-ordertexture=1
-chaostexture=1
-
-[earthblood03]
-power=35
-neutraltexture=1
-balancetexture=1
-ordertexture=1
-chaostexture=1
-
-[earthblood04]
-power=50
-neutraltexture=1
-balancetexture=1
-ordertexture=1
-chaostexture=1
-
-[earthblood05]
-power=50
-neutraltexture=1
-balancetexture=1
-ordertexture=1
-chaostexture=1
-
-[earthblood06]
-power=40
-power_original=45
-neutraltexture=1
-balancetexture=1
-ordertexture=1
-chaostexture=1
-
-;=========================================================================
-; Shrines
-;=========================================================================
-[shrinedefs]
-numshrines=3
-
-[shrine00]
-power=100
-alignment=order
-bias=100
-
-[shrine01]
-power=100
-alignment=chaos
-bias=100
-
-[shrine02]
-power=100
-alignment=balance
-bias=100
-
-;=========================================================================
-; Map Data
-;=========================================================================
 [map]
-grid_id=3
 map_y_pos=0
 map_x_pos=0
-map_x_offset=18
-map_y_offset=20
+map_y_offset=1
+map_x_offset=1

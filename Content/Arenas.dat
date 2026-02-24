@@ -1,124 +1,75 @@
 [arenadefs]
-numarenas=10
-numgrids=10
-default=0
+numarenas= 4
+numgrids= 4
+default= 0
+
+; grid00 -> Splat Lake
+; grid01 -> Splat Park
+; grid02 -> Castle Splat
+; grid03 -> Splat West
 
 [arena00]
-midi=cath.mid
-enabled=1
-type=1
-name=Cathedral Revival
-short_name=CathRev
-description=A Large arena in a Medieval Cathedral.
-grid=grid00
-maxplayers=99
-timelimit=3600
-expbonus=0.10
-
-[arena01]
-midi=cath.mid
-enabled=1
-type=1
-name=Roarc Cata 2T
-short_name=Cats2T
-description=A dark, maze-like underground arena.
-grid=grid01
-maxplayers=99
-timelimit=3600
-expbonus=0.10
-
-[arena02]
-midi=catacomb.mid
-enabled=1
-type=1
-name=Roarc Catacombs
-short_name=Cats
-description=A dark, maze-like underground arena.
-grid=grid02
-maxplayers=99
-timelimit=3600
-expbonus=0.00
-
-[arena03]
-midi=keep.mid
-enabled=1
-type=1
-name=Thunder Keep
-short_name=Keep
-description=A medium sized arena set in a Medieval Keep.
-grid=grid03
-maxplayers=99
-timelimit=3600
-expbonus=0.15
-
-[arena04]
-midi=catacomb.mid
-enabled=1
-type=1
-name=Town of Sirama
-short_name=Town
-description=A large town as an arena.
-grid=grid04
-maxplayers=99
-timelimit=3600
-expbonus=0.35
-
-[arena05]
-midi=catacomb.mid
-enabled=1
-type=1
-name=Temple of Ramhotep
-short_name=Temple
-description=A large desert Temple.
-grid=grid05
-maxplayers=99
-timelimit=3600
-expbonus=0.35
-
-[arena06]
-midi=catacomb.mid
-enabled=1
-type=1
-name=Halls of the Loaru
-short_name=Halls
-description=A large underground maze.
-grid=grid06
-maxplayers=99
-timelimit=3600
-expbonus=0.50
-
-[arena07]
-midi=catacomb.mid
-enabled=1
-type=1
-name=Barracks of Folenn
-short_name=Barracks
-description=The last remaining weaponized barracks of Folenn.
-grid=grid07
-maxplayers=99
-timelimit=3600
-expbonus=0.15
-
-[arena08]
-midi=catacomb.mid
-enabled=1
-type=1
-name=Splat Park
-short_name=Park
-description=
-grid=grid08
-maxplayers=99
-timelimit=3600
-expbonus=0.15
-
-[arena09]
-midi=catacomb.mid
 enabled=1
 type=1
 name=Splat Lake
-short_name=Lake
-description=
-grid=grid09
-maxplayers=99
-timelimit=3600
-expbonus=0.15
+description=Red and Green Teams
+grid=grid00
+maxplayers= 20
+maxteam0= 20
+maxteam1= 20
+maxteam2= 0
+maxteam3= 0
+maxteam4= 20
+opentime= 1800
+pointlimit= 0
+flagx=49
+flagy=37
+
+[arena01]
+enabled=1
+type=1
+name=Splat Park
+description=All Four Teams
+grid=grid01
+maxplayers= 20
+maxteam0= 10
+maxteam1= 10
+maxteam2= 10
+maxteam3= 10
+maxteam4= 10
+opentime= 1800
+pointlimit= 0
+flagx=30
+flagy=31
+
+[arena02]
+enabled=1
+type=0
+name=Castle Splat
+description=Yellow and Blue Teams
+grid=grid02
+maxplayers= 20
+maxteam0= 40
+maxteam1= 10
+maxteam2= 10
+maxteam3= 10
+maxteam4= 10
+opentime= 1800
+pointlimit= 0
+
+[arena03]
+enabled=1
+type=1
+name=Silly Splat
+description=Red, Yellow and Blue Teams
+grid=grid03
+maxplayers= 20
+maxteam0= 30
+maxteam1= 10
+maxteam2= 10
+maxteam3= 10
+maxteam4= 00
+opentime= 1800
+pointlimit= 0
+flagx=66
+flagy=63

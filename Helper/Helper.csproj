@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Helper</RootNamespace>
     <AssemblyName>Helper</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -99,25 +99,25 @@
     <Compile Include="Components\WebClientEx.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Magestorm\Arena\Shrine.cs" />
-    <Compile Include="Magestorm\Grid\GridObjectDefinition.cs" />
-    <Compile Include="Magestorm\Grid\Grid.cs" />
-    <Compile Include="Magestorm\Grid\GridBlock.cs" />
-    <Compile Include="Magestorm\Grid\GridBlockCollection.cs" />
-    <Compile Include="Magestorm\Grid\GridCollection.cs" />
-    <Compile Include="Magestorm\Grid\GridManager.cs" />
-    <Compile Include="Magestorm\Grid\GridObject.cs" />
-    <Compile Include="Magestorm\Grid\GridObjectCollection.cs" />
-    <Compile Include="Magestorm\Grid\GridObjectDefinitionCollection.cs" />
-    <Compile Include="Magestorm\Arena\Pool.cs" />
-    <Compile Include="Magestorm\Arena\PoolCollection.cs" />
-    <Compile Include="Magestorm\Grid\Thin.cs" />
-    <Compile Include="Magestorm\Grid\ThinCollection.cs" />
-    <Compile Include="Magestorm\Grid\Tile.cs" />
-    <Compile Include="Magestorm\Grid\TileBlock.cs" />
-    <Compile Include="Magestorm\Grid\TileCollection.cs" />
-    <Compile Include="Magestorm\Grid\Trigger.cs" />
-    <Compile Include="Magestorm\Grid\TriggerCollection.cs" />
+    <Compile Include="Splatterballplus\Arena\Shrine.cs" />
+    <Compile Include="Splatterballplus\Grid\GridObjectDefinition.cs" />
+    <Compile Include="Splatterballplus\Grid\Grid.cs" />
+    <Compile Include="Splatterballplus\Grid\GridBlock.cs" />
+    <Compile Include="Splatterballplus\Grid\GridBlockCollection.cs" />
+    <Compile Include="Splatterballplus\Grid\GridCollection.cs" />
+    <Compile Include="Splatterballplus\Grid\GridManager.cs" />
+    <Compile Include="Splatterballplus\Grid\GridObject.cs" />
+    <Compile Include="Splatterballplus\Grid\GridObjectCollection.cs" />
+    <Compile Include="Splatterballplus\Grid\GridObjectDefinitionCollection.cs" />
+    <Compile Include="Splatterballplus\Arena\Pool.cs" />
+    <Compile Include="Splatterballplus\Arena\PoolCollection.cs" />
+    <Compile Include="Splatterballplus\Grid\Thin.cs" />
+    <Compile Include="Splatterballplus\Grid\ThinCollection.cs" />
+    <Compile Include="Splatterballplus\Grid\Tile.cs" />
+    <Compile Include="Splatterballplus\Grid\TileBlock.cs" />
+    <Compile Include="Splatterballplus\Grid\TileCollection.cs" />
+    <Compile Include="Splatterballplus\Grid\Trigger.cs" />
+    <Compile Include="Splatterballplus\Grid\TriggerCollection.cs" />
     <Compile Include="Controls\ExtendedRichTextBox.cs">
       <SubType>Component</SubType>
     </Compile>

@@ -1,185 +1,219 @@
-;
-;				Roarc Catacombs
-;
+;=========================================================================
+; Monster Generators 
+;=========================================================================
 
-;=========================================================================
-; Monster Generators
-;=========================================================================
+; 1 - 4  NPC Monsters
+; 5      Flag
+; 6      Ammo Refill
+; 7      Sponge
+
 [mongendefs]
-nummongens=0
+nummongens= 16
+
+[mongen00]
+object= 1
+maxnum= 2
+chance= 50
+timer= 6000
+xmaze= 8
+ymaze= 51
+single= 0
+
+[mongen01]
+object= 2
+maxnum= 2
+chance= 50
+timer= 6000
+xmaze= 54
+ymaze= 8
+single= 0
+
+[mongen02]
+object= 3
+maxnum= 2
+chance= 50
+timer= 6000
+xmaze= 21
+ymaze= 19
+single= 0
+
+[mongen03]
+object= 4
+maxnum= 2
+chance= 50
+timer= 6000
+xmaze= 32
+ymaze= 53
+single= 0
+
+
+[mongen04]
+object= 6
+maxnum= 2
+chance= 50
+timer= 20000
+xmaze= 17
+ymaze= 42
+single= 1
+
+[mongen05]
+object= 6
+maxnum= 2
+chance= 50
+timer= 20000
+xmaze= 50
+ymaze= 61
+single= 1
+
+[mongen06]
+object= 6
+maxnum= 2
+chance= 50
+timer= 20000
+xmaze= 39
+ymaze= 36
+single= 1
+
+[mongen07]
+object= 6
+maxnum= 2
+chance= 50
+timer= 20000
+xmaze= 50
+ymaze= 29
+single= 1
+
+[mongen08]
+object= 6
+maxnum= 2
+chance= 50
+timer= 20000
+xmaze= 42
+ymaze= 7
+single= 1
+
+[mongen09]
+object= 6
+maxnum= 2
+chance= 50
+timer= 20000
+xmaze= 31
+ymaze= 18
+single= 1
+
+[mongen10]
+object= 7
+maxnum= 2
+chance= 50
+timer= 20000
+xmaze= 22
+ymaze= 20
+single= 1
+
+[mongen11]
+object= 7
+maxnum= 2
+chance= 50
+timer= 20000
+xmaze= 27
+ymaze= 35
+single= 1
+
+[mongen12]
+object= 7
+maxnum= 2
+chance= 50
+timer= 20000
+xmaze= 22
+ymaze= 53
+single= 1
+
+[mongen13]
+object= 7
+maxnum= 2
+chance= 50
+timer= 20000
+xmaze= 37
+ymaze= 45
+single= 1
+
+[mongen14]
+object= 7
+maxnum= 2
+chance= 50
+timer= 20000
+xmaze= 10
+ymaze= 25
+single= 1
+
+[mongen15]
+object= 7
+maxnum= 2
+chance= 50
+timer= 20000
+xmaze= 11
+ymaze= 60
+single= 1
+
 
 ;=========================================================================
-; Team Starting Areas
+; Team Starting 
 ;=========================================================================
 [noteam]
-startx=13
-starty=17
-raisex=13
-raisey=17
+startx= 31
+starty= 31
+raisex= 31
+raisey= 31
 
-[chaos]
-startx=30
-starty=63
-raisex=13
-raisey=17
+[red]
+startx= 4
+starty= 4
+raisex= 4
+raisey= 4
 
-[order]
-startx=61
-starty=102
-raisex=13
-raisey=17
+[blue]
+startx= 9
+starty= 55
+raisex= 9
+raisey= 55
 
-[balance]
-startx=90
-starty=63
-raisex=13
-raisey=17
+[yellow]
+startx= 62
+starty= 62
+raisex= 62
+raisey= 62
+
+[green]
+startx= 62
+starty= 2
+raisex= 62
+raisey= 2
 
 ;=========================================================================
 ; Light
 ;=========================================================================
 [light]
-ambient=10
-outdoor=16
-intensity=75
+ambient= 20
+outdoor= 26
+intensity= 96
 
 ;=========================================================================
-; Earthblood Pools
+;Safe Zone Teleporters
 ;=========================================================================
-[earthblooddefs]
-numearthblood=13
 
-[earthblood00]
-power=37
-power_original=40
-neutraltexture=1
-balancetexture=1
-ordertexture=1
-chaostexture=1
+[safezonedefs]
+numsafezones=2
 
-[earthblood01]
-power=55
-power_original=65
-neutraltexture=1
-balancetexture=1
-ordertexture=1
-chaostexture=1
+[safezone01]
+trigger=1
 
-[earthblood02]
-power=55
-power_original=65
-neutraltexture=1
-balancetexture=1
-ordertexture=1
-chaostexture=1
+[safezone02]
+trigger=2
 
-[earthblood03]
-power=37
-power_original=40
-neutraltexture=1
-balancetexture=1
-ordertexture=1
-chaostexture=1
 
-[earthblood04]
-power=55
-power_original=65
-neutraltexture=1
-balancetexture=1
-ordertexture=1
-chaostexture=1
 
-[earthblood05]
-power=25
-power_original=35
-neutraltexture=1
-balancetexture=1
-ordertexture=1
-chaostexture=1
-
-[earthblood06]
-power=25
-power_original=35
-neutraltexture=1
-balancetexture=1
-ordertexture=1
-chaostexture=1
-
-[earthblood07]
-power=25
-power_original=35
-neutraltexture=1
-balancetexture=1
-ordertexture=1
-chaostexture=1
-
-[earthblood08]
-power=25
-power_original=35
-neutraltexture=1
-balancetexture=1
-ordertexture=1
-chaostexture=1
-
-[earthblood09]
-power=37
-power_original=40
-neutraltexture=1
-balancetexture=1
-ordertexture=1
-chaostexture=1
-
-[earthblood10]
-power=55
-power_original=65
-neutraltexture=1
-balancetexture=1
-ordertexture=1
-chaostexture=1
-
-[earthblood11]
-power=25
-power_original=35
-neutraltexture=1
-balancetexture=1
-ordertexture=1
-chaostexture=1
-
-[earthblood12]
-power=25
-power_original=35
-neutraltexture=1
-balancetexture=1
-ordertexture=1
-chaostexture=1
-
-;=========================================================================
-; Shrines
-;=========================================================================
-[shrinedefs]
-numshrines=3
-
-[shrine00]
-power=100
-alignment=balance
-bias=100
-
-[shrine01]
-power=100
-alignment=order
-bias=100
-
-[shrine02]
-power=100
-alignment=chaos
-bias=100
-
-;=========================================================================
-; Map Data
-;=========================================================================
 [map]
-grid_id=02
 map_y_pos=0
 map_x_pos=0
-map_y_offset=27
-map_x_offset=18
+map_y_offset=0
+map_x_offset=0

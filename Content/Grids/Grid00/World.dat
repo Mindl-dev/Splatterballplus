@@ -1,149 +1,272 @@
-;
-;				Cathedral Revival 
-;					  by Kross               
+;SplatterBall Grid03 (SplatPark II, son of SplatPark)
 
 ;=========================================================================
-; Monster Generators
+; Monster Generators 
 ;=========================================================================
+; 1 - 4  NPC Monsters
+; 5      Flag
+; 6      Ammo Refill
+; 7      Sponge
+
 [mongendefs]
-nummongens=0
+nummongens= 22
+;nummongens= 0
+
+[mongen00]
+object= 1
+maxnum= 20
+chance= 50
+timer= 6000
+xmaze= 37
+ymaze= 34
+single= 0
+
+[mongen01]
+object= 6
+maxnum= 2
+chance= 50
+timer= 20000
+xmaze= 21
+ymaze= 29
+single= 1
+
+[mongen02]
+object= 6
+maxnum= 4
+chance= 50
+timer= 20000
+xmaze= 25
+ymaze= 48
+single= 1
+
+[mongen03]
+object= 6
+maxnum= 2
+chance= 50
+timer= 20000
+xmaze= 45
+ymaze= 50
+single= 1
+
+[mongen04]
+object= 6
+maxnum= 4
+chance= 50
+timer= 20000
+xmaze= 38
+ymaze= 48
+single= 1
+
+[mongen05]
+object= 6
+maxnum= 3
+chance= 50
+timer= 20000
+xmaze= 54
+ymaze= 48
+single= 1
+
+[mongen06]
+object= 6
+maxnum= 2
+chance= 50
+timer= 20000
+xmaze= 69
+ymaze= 27
+single= 1
+
+[mongen07]
+object= 6
+maxnum= 3
+chance= 50
+timer= 20000
+xmaze= 77
+ymaze= 46
+single= 1
+
+[mongen08]
+object= 6
+maxnum= 2
+chance= 50
+timer= 20000
+xmaze= 56
+ymaze= 21
+single= 1
+
+[mongen09]
+object= 6
+maxnum= 4
+chance= 50
+timer= 20000
+xmaze= 61
+ymaze= 31
+single= 1
+
+[mongen10]
+object= 6
+maxnum= 4
+chance= 50
+timer= 20000
+xmaze= 59
+ymaze= 47
+single= 1
+
+[mongen11]
+object= 2
+maxnum= 20
+chance= 50
+timer= 20000
+xmaze= 37
+ymaze= 34
+single= 0
+
+[mongen12]
+object= 3
+maxnum= 20
+chance= 50
+timer= 20000
+xmaze= 37
+ymaze= 34
+single= 0
+
+[mongen13]
+object= 4
+maxnum= 20
+chance= 50
+timer= 20000
+xmaze= 37
+ymaze= 34
+single= 0
+
+[mongen14]
+object= 7
+maxnum= 2
+chance= 50
+timer= 20000
+xmaze= 34
+ymaze= 26
+single= 1
+
+[mongen15]
+object= 7
+maxnum= 2
+chance= 50
+timer= 20000
+xmaze= 27
+ymaze= 52
+single= 1
+
+[mongen16]
+object= 7
+maxnum= 2
+chance= 50
+timer= 20000
+xmaze= 41
+ymaze= 53
+single= 1
+
+[mongen17]
+object= 7
+maxnum= 2
+chance= 50
+timer= 20000
+xmaze= 62
+ymaze= 22
+single= 1
+
+[mongen18]
+object= 7
+maxnum= 2
+chance= 50
+timer= 20000
+xmaze= 68
+ymaze= 52
+single= 1
+
+[mongen19]
+object= 7
+maxnum= 2
+chance= 50
+timer= 20000
+xmaze= 54
+ymaze= 27
+single= 1
+
+[mongen20]
+object= 7
+maxnum= 2
+chance= 50
+timer= 20000
+xmaze= 48
+ymaze= 32
+single= 1
+
+[mongen21]
+object= 7
+maxnum= 2
+chance= 50
+timer= 20000
+xmaze= 51
+ymaze= 41
+single= 1
+
+
 
 ;=========================================================================
-; Team Starting Area
+; Team Starting 
 ;=========================================================================
 [noteam]
-startx=48
-starty=112
-raisex=48
-raisey=112
+startx= 31
+starty= 31
+raisex= 31
+raisey= 31
 
-[chaos]
-startx=12
-starty=11
-starta=0
-raisex=47
-raisey=108
-raisea=90
+[red]
+startx= 75
+starty= 36
+raisex= 75
+raisey= 36
 
-[order]
-startx=65
-starty=27
-starta=0
-raisex=48
-raisey=115
-raisea=90
+[blue]
+startx= 36
+starty= 31
+starta= 270
+raisex= 31
+raisey= 31
 
-[balance]
-startx=18
-starty=77
-starta=180
-raisex=48
-raisey=112
-raisea=90
+[yellow]
+startx= 31
+starty= 31
+raisex= 31
+raisey= 31
+
+[green]
+startx= 23
+starty= 37
+raisex= 23
+raisey= 37
 
 ;=========================================================================
 ; Light
 ;=========================================================================
 [light]
-ambient=12
-outdoor=28
-intensity=96
+ambient= 20
+outdoor= 25
+intensity= 96
 
 ;=========================================================================
-; Earthblood Pools
+;Safe Zone Teleporters
 ;=========================================================================
-[earthblooddefs]
-numearthblood=8
 
-[earthblood00] ; Near Red Shrine
-power=70
-neutraltexture=1
-ordertexture=1
-chaostexture=1
-balancetexture=1
+[safezonedefs]
+numsafezones=1
 
-[earthblood01] ; Near Green Shrine
-power=65
-power_original=70
-neutraltexture=1
-ordertexture=1
-chaostexture=1
-balancetexture=1
-
-[earthblood02] ; In Main Hall
-power=57
-power_original=70
-neutraltexture=1
-ordertexture=1
-chaostexture=1
-balancetexture=1
-
-[earthblood03] ; Near Blue Shrine
-power=65
-power_original=70
-neutraltexture=1
-ordertexture=1
-chaostexture=1
-balancetexture=1
-
-[earthblood04] ; In Atrium Area
-power=40
-power_original=45
-neutraltexture=1
-ordertexture=1
-chaostexture=1
-balancetexture=1
+[safezone01]
+trigger=5
 
 
-[earthblood05] ; Sewer
-power=20
-neutraltexture=1
-ordertexture=1
-chaostexture=1
-balancetexture=1
 
-[earthblood06] ; Near Green 2
-power=30
-power_original=45
-neutraltexture=1
-ordertexture=1
-chaostexture=1
-balancetexture=1
-
-[earthblood07] ; Near Red 2
-power=35
-power_original=45
-neutraltexture=1
-ordertexture=1
-chaostexture=1
-balancetexture=1
-
-;=========================================================================
-; Shrines
-;=========================================================================
-[shrinedefs]
-numshrines=3
-
-[shrine00]
-power=100
-alignment=chaos
-bias=100
-
-[shrine01]
-power=100
-alignment=balance
-bias=100
-
-[shrine02]
-power=100
-alignment=order
-bias=100
-
-;=========================================================================
-; Map Data
-;=========================================================================
 [map]
-grid_id=0
 map_y_pos=0
 map_x_pos=0
 map_y_offset=0
