@@ -181,7 +181,7 @@ namespace SplatterServer
             set
             {
                 Team team = value;
-                if ((Byte)team > 3) team = Team.Neutral;
+                if ((Byte)team > 3) team = Team.NoTeam;
                 _team = team;
             }
         }  
@@ -238,15 +238,19 @@ namespace SplatterServer
 
                 switch (ActiveTeam)
                 {
-                    case Team.Balance:
+                    case Team.Green:
                     {
                         return Color.DarkGreen;
                     }
-                    case Team.Order:
+                    case Team.Blue:
                     {
                         return Color.Blue;
                     }
-                    case Team.Chaos:
+                    case Team.Yellow:
+                    {
+                        return Color.GreenYellow;
+                    }
+                    case Team.Red:
                     {
                         return Color.DarkRed;
                     }

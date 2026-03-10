@@ -49,7 +49,7 @@ namespace SplatterServer
                 
                 flagData -= (Int32)GridBlockFlag.Shrine;
 
-                ShrineTeam = arena.ArenaTeams.FindByShrineId((Byte) flagData);
+                //ShrineTeam = arena.ArenaTeams.FindByShrineId((Byte) flagData);
                 Pool = null;
                 BlockFlag = ShrineTeam == null ? GridBlockFlag.None : GridBlockFlag.Shrine;
 

@@ -223,6 +223,15 @@ namespace SplatterServer.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SELECT * FROM `accounts` WHERE username = @username LIMIT 1.
+        /// </summary>
+        public static string Query_Select_AccountData {
+            get {
+                return ResourceManager.GetString("Query_Select_AccountData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SELECT * FROM `characters` WHERE accountid = @accountid AND slot = @slot LIMIT 1.
         /// </summary>
         public static string Query_Select_Character_FindByAccountIdAndSlot {

@@ -1,7 +1,9 @@
-﻿using System;
+﻿using SplatterServer.Properties;
+using System;
+using System.Data;
 using System.Drawing;
 using System.Globalization;
-using SplatterServer.Properties;
+using System.Xml.Linq;
 
 namespace SplatterServer
 {
@@ -29,7 +31,7 @@ namespace SplatterServer
         static Subscription()
         {
             SubscriptionPage = String.Format("https://{0}/subscription.php", Settings.Default.SubscriptionHost);
-            GameVersion = new[] { Convert.ToByte(Settings.Default.ServerVersion.Split('.')[3]), Convert.ToByte(Settings.Default.ServerVersion.Split('.')[0]), Convert.ToByte(Settings.Default.ServerVersion.Split('.')[1]), Convert.ToByte(Settings.Default.ServerVersion.Split('.')[2]) };
+            GameVersion = new[] { Convert.ToByte(49), Convert.ToByte(0), Convert.ToByte(6), Convert.ToByte(1) };
         }
 
 	    private class AccountData
@@ -45,52 +47,39 @@ namespace SplatterServer
                 AccountId = 0;
                 Username = "";
                 Admin = AdminLevel.None;
-                Error = ErrorType.AccessError;
+                Error = ErrorType.UnknownError;
 
                 try
                 {
-                    NetRequest request = new NetRequest(NetRequestMode.Magestorm, SubscriptionPage, ipAddress, String.Format("u={0}", username), String.Format("p={0}", password));
+                    DataTable query = MySQL.Accounts.GetAccountData(username);
 
-                    if (!request.Succeeded)
+                    if (query == null || query.Rows.Count == 0)
                     {
-                        Error = ErrorType.AccessError;
-                        return;
+                        Error = ErrorType.AccountDoesNotExist;
+                        return; // Exit early if no account exists
                     }
 
-                    String[] uData = request.Response.Split('|');
+                    DataRow accountdata = query.Rows[0];
 
-                    switch (uData.Length)
+                    Program.ServerForm.MainLog.WriteMessage(String.Format("db passwd: {0}, sent passwd: {1}, db username: {2}, sent username: {3}", accountdata["password"], password, accountdata["username"], username), Color.DarkOrange);
+
+                    if (accountdata["password"].ToString() == password)
                     {
-                        case 1:
+                        if ((int)accountdata["AccountID"] > 0)
                         {
-                            Error = (ErrorType) Math.Abs(Convert.ToInt32(uData[0]));
-
-                            break;
+                            AccountId = (int)accountdata["AccountID"];
+                            Username = accountdata["username"].ToString();
+                            Admin = (AdminLevel)accountdata["Admin"];
+                            Error = ErrorType.None;
                         }
-                        case 4:
+                        else
                         {
-                            AccountId = Convert.ToUInt16(uData[0]);
-
-                            if (AccountId > 0)
-                            {
-                                Admin = (AdminLevel)Convert.ToInt32(uData[1]);
-                                Username = Convert.ToString(uData[2]);
-                                MagestormPlus = Convert.ToBoolean(uData[3]);
-                                Error = ErrorType.None;
-                            }
-                            else
-                            {
-                                Error = ErrorType.InvalidAccount;
-                            } 
-
-                            break;
+                            Error = ErrorType.InvalidAccount;
                         }
-                        default:
-                        {
-                            Error = ErrorType.UnknownError;
-
-                            break;
-                        }
+                    }
+                    else
+                    {
+                        Error = ErrorType.InvalidPassword;
                     }
 
                     if (PlayerManager.Players.GetFreePlayerCount() > 100 && (!MagestormPlus && Admin == AdminLevel.None))
@@ -108,7 +97,7 @@ namespace SplatterServer
 
                             if (Error == ErrorType.LoggedIn)
                             {
-	                            connectedPlayer.DisconnectReason = Resources.Strings_Disconnect.MultipleLogin;
+                                connectedPlayer.DisconnectReason = Resources.Strings_Disconnect.MultipleLogin;
                                 connectedPlayer.Disconnect = true;
                             }
                         }
@@ -126,19 +115,20 @@ namespace SplatterServer
                             }
                         }
 
-						if (MySQL.BannedSerials.IsBanned(serial))
+                        if (MySQL.BannedSerials.IsBanned(serial))
                         {
                             Error = ErrorType.BannedComputer;
                         }
 
-						if (Settings.Default.Locked && Admin == AdminLevel.None)
+                        if (Settings.Default.Locked && Admin == AdminLevel.None)
                         {
                             Error = ErrorType.ServerLocked;
                         }
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Program.ServerForm.MainLog.WriteMessage("Login Error: " + ex.Message, Color.Red);
                     Error = ErrorType.AccessError;
                 } 
             }

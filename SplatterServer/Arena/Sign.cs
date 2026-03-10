@@ -50,7 +50,7 @@ namespace SplatterServer
 
             ObjectId = objectId;
             Owner = owner;
-            Team = spell.NoTeam ? Team.None : owner.ActiveTeam;
+            Team = spell.NoTeam ? Team.NoTeam : owner.ActiveTeam;
             Spell = spell;
             Location = new Vector3(location.X, location.Y, location.Z);
             Direction = direction;

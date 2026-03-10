@@ -1278,7 +1278,7 @@ namespace SplatterServer
                 }
 
                 case "guildscore":
-                case "gs":
+                /*case "gs":
                 {
                     if (!player.IsInArena)
                     {
@@ -1292,7 +1292,7 @@ namespace SplatterServer
                         return true;
                     }
 
-                    if (player.ActiveArena.ArenaPlayers.GetTeamPlayerCount(Team.Chaos) > 0 || !player.ActiveArena.ArenaTeams.Chaos.Shrine.IsDead)
+                    if (player.ActiveArena.ArenaPlayers.GetTeamPlayerCount(Team.Red) > 0 || !player.ActiveArena.ArenaTeams.Chaos.Shrine.IsDead)
                     {
                         Network.Send(player, GamePacket.Outgoing.System.DirectTextMessage(null, String.Format("[Guild Match] Chaos: {0:0.00}", player.ActiveArena.ArenaTeams.Chaos.Shrine.GuildPoints)));
                     }
@@ -1335,7 +1335,7 @@ namespace SplatterServer
                     Network.Send(player, GamePacket.Outgoing.System.DirectTextMessage(null, String.Format("[Guild Match] Winning Team: {0}", (guildWinTeam == Team.Neutral) ? "None" : guildWinTeam.ToString())));
 
                     return true;
-                }
+                }*/
 
                 case "arenakick":
                 case "akick":

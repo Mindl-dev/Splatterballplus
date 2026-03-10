@@ -812,6 +812,8 @@ namespace SplatterServer
 
                     Grid grid = GridManager.Grids.FindById(gridId);
 
+                    Program.ServerForm.MainLog.WriteMessage($"[Create Arena] - grid ID: {gridId}, shortname: {grid.ShortGameName}", Color.Blue);
+
                     if (grid != null)
                     {
                         if (player.PreferredArenaMode == ArenaRuleset.ArenaMode.Custom)
@@ -1276,7 +1278,7 @@ namespace SplatterServer
                     outStream.WriteByte(arenaPlayer.ArenaPlayerId);
                     return outStream;
                 }
-                public static MemoryStream UpdateShrinePoolState(SplatterServer.Arena arena)
+                /*public static MemoryStream UpdateShrinePoolState(SplatterServer.Arena arena)
                 {
                     MemoryStream outStream = new MemoryStream();
                     outStream.WriteByte(0x00);
@@ -1339,7 +1341,7 @@ namespace SplatterServer
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
 
-                    /*for (Int32 i = 0; i < 20; i++)
+                    for (Int32 i = 0; i < 20; i++)
                     {
                         if (arena.Grid.Pools[i] != null)
                         {
@@ -1363,9 +1365,9 @@ namespace SplatterServer
                             outStream.WriteByte(0x00);
                             outStream.WriteByte(0x00);
                         }
-                    }*/
+                    }
                     return outStream;
-                }
+                }*/
                 public static MemoryStream UpdateExperience(ArenaPlayer arenaPlayer)
                 {
                     MemoryStream outStream = new MemoryStream();
@@ -1874,9 +1876,9 @@ namespace SplatterServer
                     outStream.Write(Encoding.ASCII.GetBytes(message), 0, message.Length);
                     return outStream;
                 }
-                public static void DrawBoundingBox(ArenaPlayer arenaPlayer, OrientedBoundingBox boundingBox)
+                /*public static void DrawBoundingBox(ArenaPlayer arenaPlayer, OrientedBoundingBox boundingBox)
                 {
-                    const Int16 spellId = 216;
+                    const Int16 spellId = 5;
 
                     if (arenaPlayer == null) return;
                     MemoryStream outStream;
@@ -1917,6 +1919,45 @@ namespace SplatterServer
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
                     Network.Send(arenaPlayer.WorldPlayer, outStream);
+                }*/
+                public static void DrawBoundingBox(ArenaPlayer arenaPlayer, OrientedBoundingBox boundingBox)
+                {
+                    const Int16 debugSpellId = 5;
+
+                    if (arenaPlayer == null) return;
+
+                    // We only send the corners to avoid crashing the client with too many packets
+                    for (Int32 i = 0; i < boundingBox.Corners.Length; i++)
+                    {
+                        MemoryStream outStream = new MemoryStream();
+
+                        // Header
+                        outStream.WriteByte(arenaPlayer.ArenaPlayerId);
+                        outStream.WriteByte((Byte)PacketOutFunction.CastProjectile); // Case 176 (B0h)
+
+                        // Data (Must be exactly what the ASM reads)
+                        outStream.Write(BitConverter.GetBytes(NetHelper.FlipBytes(debugSpellId)), 0, 2); // Offset 0
+                        outStream.Write(BitConverter.GetBytes(NetHelper.FlipBytes((Int16)boundingBox.Corners[i].X)), 0, 2); // Offset 2
+                        outStream.Write(BitConverter.GetBytes(NetHelper.FlipBytes((Int16)boundingBox.Corners[i].Y)), 0, 2); // Offset 4
+                        outStream.Write(BitConverter.GetBytes(NetHelper.FlipBytes((Int16)boundingBox.Corners[i].Z)), 0, 2); // Offset 6
+
+                        // The CX read at [esi+8]
+                        outStream.Write(BitConverter.GetBytes(NetHelper.FlipBytes((Int16)0)), 0, 2); // Offset 8
+
+                        // Padding to get to Offset 12 (0Ch)
+                        outStream.WriteByte(0x00); // Offset 10
+                        outStream.WriteByte(0x00); // Offset 11
+
+                        // The Byte reads at 0Ch, 0Dh, 0Eh
+                        outStream.WriteByte(0x00); // Offset 12 [esi+0Ch]
+                        outStream.WriteByte(0x00); // Offset 13 [esi+0Dh]
+                        outStream.WriteByte(0x00); // Offset 14 [esi+0Eh]
+
+                        // Final Null Terminator (Optional based on client buffer)
+                        outStream.WriteByte(0x00); // Total Length: 16 bytes
+
+                        Network.Send(arenaPlayer.WorldPlayer, outStream);
+                    }
                 }
             }
 
@@ -2052,11 +2093,11 @@ namespace SplatterServer
                     outStream.WriteByte(arena.LevelRange);
                     outStream.WriteByte(arena.TableId);
                     outStream.WriteByte(Convert.ToByte(arena.ArenaPlayers.Count));
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(Convert.ToByte(!arena.ArenaTeams.Chaos.Shrine.IsDisabled)); // Enables Chaos Team
-                    outStream.WriteByte(Convert.ToByte(!arena.ArenaTeams.Order.Shrine.IsDisabled)); // Enables Order Team
-                    outStream.WriteByte(Convert.ToByte(!arena.ArenaTeams.Balance.Shrine.IsDisabled)); // Enables Balance Team
-                    outStream.WriteByte(0x00); // Enables Rogue Team
+                    outStream.WriteByte((Byte)(arena.ArenaTeams.IsFFA ? 1 : 0)); // FFA
+                    outStream.WriteByte((Byte)(arena.ArenaTeams.HasTeam(Team.Red) ? 1 : 0));    // Offset 9
+                    outStream.WriteByte((Byte)(arena.ArenaTeams.HasTeam(Team.Yellow) ? 1 : 0));   // Offset 10
+                    outStream.WriteByte((Byte)(arena.ArenaTeams.HasTeam(Team.Blue) ? 1 : 0)); // Offset 11
+                    outStream.WriteByte((Byte)(arena.ArenaTeams.HasTeam(Team.Green) ? 1 : 0));  // Offset 12
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
@@ -2137,11 +2178,11 @@ namespace SplatterServer
                     outStream.WriteByte(arena.LevelRange);
                     outStream.WriteByte(arena.TableId);
                     outStream.WriteByte(Convert.ToByte(arena.ArenaPlayers.Count));
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(Convert.ToByte(!arena.ArenaTeams.Chaos.Shrine.IsDisabled));
-                    outStream.WriteByte(Convert.ToByte(!arena.ArenaTeams.Order.Shrine.IsDisabled));
-                    outStream.WriteByte(Convert.ToByte(!arena.ArenaTeams.Balance.Shrine.IsDisabled)); 
-                    outStream.WriteByte(0x00);
+                    outStream.WriteByte((Byte)(arena.ArenaTeams.IsFFA ? 1 : 0)); // FFA
+                    outStream.WriteByte((Byte)(arena.ArenaTeams.HasTeam(Team.Red) ? 1 : 0));    // Offset 9
+                    outStream.WriteByte((Byte)(arena.ArenaTeams.HasTeam(Team.Yellow) ? 1 : 0));   // Offset 10
+                    outStream.WriteByte((Byte)(arena.ArenaTeams.HasTeam(Team.Blue) ? 1 : 0)); // Offset 11
+                    outStream.WriteByte((Byte)(arena.ArenaTeams.HasTeam(Team.Green) ? 1 : 0));  // Offset 12
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);

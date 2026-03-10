@@ -18,7 +18,47 @@ namespace SplatterServer
             ConnectionString = String.Format(Resources.Strings_MySQL.ConnectionString, Settings.Default.DatabaseName, Settings.Default.DatabaseHost, Settings.Default.DatabasePort, Settings.Default.DatabaseUsername, Settings.Default.DatabasePassword);
         }
 
-		public static class ServerSettings
+        public static class Accounts
+        {
+            public static DataTable GetAccountData(String username)
+            {
+                try
+                {
+                    using (MySqlConnection sqlConnection = new MySqlConnection(ConnectionString))
+                    {
+                        sqlConnection.Open();
+
+                        if (sqlConnection.State == ConnectionState.Open)
+                        {
+                            MySqlCommand sqlCommand = new MySqlCommand
+                            {
+                                Connection = sqlConnection,
+                                CommandText = Resources.Strings_MySQL.Query_Select_AccountData
+                            };
+
+                            sqlCommand.Parameters.AddWithValue("@username", username);
+
+                            MySqlDataAdapter sqlAdapter = new MySqlDataAdapter();
+                            DataTable result = new DataTable();
+
+                            sqlAdapter.SelectCommand = sqlCommand;
+                            sqlAdapter.Fill(result);
+
+                            return result;
+                        }
+
+                        throw new Exception(Resources.Strings_MySQL.Error_Connecting);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Program.ServerForm.MainLog.WriteMessage(ex.Message, Color.Red);
+                }
+
+                return null;
+            }
+        }
+        public static class ServerSettings
 		{
 			public static Boolean SetExpMultiplier(Single expMultiplier)
 			{

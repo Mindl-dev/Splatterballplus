@@ -77,7 +77,7 @@ namespace Helper
                     OnHeight = t.OnHeight,
                     OnSound = t.OnSound,
                     OnText = t.OnText,
-                    Position = new Vector3(t.Position.X, t.Position.Y, t.Position.X),
+                    Position = new Vector3(t.Position.X, t.Position.Y, t.Position.Z),
                     Random = t.Random,
                     ResetTimer = t.ResetTimer,
                     SlideAmount = t.SlideAmount,
@@ -142,9 +142,9 @@ namespace Helper
 				}
 
 				GridManager.Grids.Add(grid);
-				logBox.WriteMessage(String.Format("Loaded Grid: {0} ({1})", grid.GameName, grid.Name), System.Drawing.Color.Green);
+				logBox.WriteMessage(String.Format("Loaded Grid: {0} ({1})", grid.GameName, grid.Name), System.Drawing.Color.Green);                
 
-				Application.DoEvents();
+                Application.DoEvents();
 			}
 
 			logBox.WriteMessage(String.Format("{0} out of {1} Arenas loaded.", i, aCount), System.Drawing.Color.Blue);
@@ -167,6 +167,7 @@ namespace Helper
                 GridId = gridId;
                 Name = NativeMethods.GetPrivateProfileString(keyName, "grid", arenaDatFilename);
                 GameName = NativeMethods.GetPrivateProfileString(keyName, "name", arenaDatFilename);
+                ShortGameName = NativeMethods.GetPrivateProfileString(keyName, "short_name", arenaDatFilename);
                 MaxPlayers = NativeMethods.GetPrivateProfileByte(keyName, "maxplayers", arenaDatFilename);
                 MaxTeam0 = NativeMethods.GetPrivateProfileByte(keyName, "maxteam0", arenaDatFilename);
                 MaxTeam1 = NativeMethods.GetPrivateProfileByte(keyName, "maxteam1", arenaDatFilename);

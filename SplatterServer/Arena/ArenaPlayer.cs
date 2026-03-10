@@ -388,7 +388,7 @@ namespace SplatterServer
                 WorldPlayer.ActiveArena = arena;
                 WorldPlayer.LastArenaId = arena.ArenaId;
 
-                ActiveTeam = OwnerArena.Ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.NoTeams) ? Team.Neutral : WorldPlayer.ActiveTeam;
+                ActiveTeam = OwnerArena.Ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.NoTeams) ? Team.NoTeam : WorldPlayer.ActiveTeam;
                 ActiveCharacter = player.ActiveCharacter;
 
                 _previousLocation = new Vector3(0, 0, 0);
@@ -449,7 +449,7 @@ namespace SplatterServer
 
             lock (OwnerArena.SyncRoot)
             {
-                Network.Send(WorldPlayer, GamePacket.Outgoing.Arena.UpdateShrinePoolState(arena));
+                //Network.Send(WorldPlayer, GamePacket.Outgoing.Arena.UpdateShrinePoolState(arena));
             }
 
             Thread.Sleep(500);

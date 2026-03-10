@@ -56,10 +56,11 @@ namespace SplatterServer
                 if (arenaPlayer == null) continue;
 
                 if (token == arenaPlayer.ActiveCharacter.Name.ToLower() ||
-                    (token == "@chaos" && arenaPlayer.ActiveTeam == Team.Chaos) ||
-                    (token == "@balance" && arenaPlayer.ActiveTeam == Team.Balance) ||
-                    (token == "@order" && arenaPlayer.ActiveTeam == Team.Order) ||
-                    (token == "@neutral" && arenaPlayer.ActiveTeam == Team.Neutral && arenaPlayer.ActiveCharacter.OpLevel == 0) ||
+                    (token == "@red" && arenaPlayer.ActiveTeam == Team.Red) ||
+                    (token == "@yellow" && arenaPlayer.ActiveTeam == Team.Yellow) ||
+                    (token == "@blue" && arenaPlayer.ActiveTeam == Team.Blue) ||
+                    (token == "@green" && arenaPlayer.ActiveTeam == Team.Green) ||
+                    (token == "@noteam" && arenaPlayer.ActiveTeam == Team.NoTeam && arenaPlayer.ActiveCharacter.OpLevel == 0) ||
                     (token == "@all" && arenaPlayer.ActiveCharacter.OpLevel == 0))
                 {
                     playerList.Add(arenaPlayer);

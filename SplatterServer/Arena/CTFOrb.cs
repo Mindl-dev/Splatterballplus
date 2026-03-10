@@ -3,7 +3,7 @@ using Helper;
 
 namespace SplatterServer
 {
-    public enum CTFOrbState
+    public enum CTFlagState
     {
         InHomeShrine,
         OnEnemyPlayer,
@@ -11,7 +11,7 @@ namespace SplatterServer
         OnGround,
     }
 
-    public class CTFOrb
+    public class CTFlag
     {
         private readonly Object _syncRoot = new Object();
         
@@ -22,31 +22,31 @@ namespace SplatterServer
 
         private readonly Team _team;
         private readonly Int16 _objectId ;
-        private CTFOrbState _orbState;
-        private ArenaPlayer _orbPlayer;
-        private Sign _orbSign;
+        private CTFlagState _flagState;
+        private ArenaPlayer _flagPlayer;
+        private Sign _flagSign;
         
-        public CTFOrbState OrbState
+        public CTFlagState FlagState
         {
             get
             {
-                return _orbState;
+                return _flagState;
             }
         }
 
-        public ArenaPlayer OrbPlayer
+        public ArenaPlayer FlagPlayer
         {
             get
             {
-                return _orbPlayer;
+                return _flagPlayer;
             }
         }
 
-        public Sign OrbSign
+        public Sign FlagSign
         {
             get
             {
-                return _orbSign;
+                return _flagSign;
             }
         }
 
@@ -58,85 +58,85 @@ namespace SplatterServer
             }
         }
 
-        public CTFOrb(Team team, Int16 objectId)
+        public CTFlag(Team team, Int16 objectId)
         {
-            _orbState = CTFOrbState.InHomeShrine;
-            _orbPlayer = null;
-            _orbSign = null;
+            _flagState = CTFlagState.InHomeShrine;
+            _flagPlayer = null;
+            _flagSign = null;
             _team = team;
             _objectId = objectId;
         }
 
-        public CTFOrbState ChangeState(ArenaPlayer arenaPlayer)
+        public CTFlagState ChangeState(ArenaPlayer arenaPlayer)
         {
             lock (SyncRoot)
             {
-                switch (OrbState)
+                switch (FlagState)
                 {
-                    case CTFOrbState.InHomeShrine:
+                    case CTFlagState.InHomeShrine:
                     {
-                        if (arenaPlayer.ActiveTeam != _team && arenaPlayer.ActiveTeam != Team.Neutral)
+                        if (arenaPlayer.ActiveTeam != _team && arenaPlayer.ActiveTeam != Team.NoTeam)
                         {
-                            _orbSign = null;
-                            _orbPlayer = arenaPlayer;
-                            _orbState = CTFOrbState.OnEnemyPlayer;
+                            _flagSign = null;
+                            _flagPlayer = arenaPlayer;
+                            _flagState = CTFlagState.OnEnemyPlayer;
                         }
 
                         break;
                     }
-                    case CTFOrbState.OnEnemyPlayer:
+                    case CTFlagState.OnEnemyPlayer:
                     {
                         if (arenaPlayer.ActiveTeam != _team)
                         {
-                            ResetOrb();
+                            ResetFlag();
                         }
 
                         break;
                     }
-                    case CTFOrbState.OnGround:
+                    case CTFlagState.OnGround:
                     {
-                        if (arenaPlayer.ActiveTeam != _team && arenaPlayer.ActiveTeam != Team.Neutral)
+                        if (arenaPlayer.ActiveTeam != _team && arenaPlayer.ActiveTeam != Team.NoTeam)
                         {
-                            _orbSign = null;
-                            _orbPlayer = arenaPlayer;
-                            _orbState = CTFOrbState.OnEnemyPlayer;
+                            _flagSign = null;
+                            _flagPlayer = arenaPlayer;
+                            _flagState = CTFlagState.OnEnemyPlayer;
                         }
                         else
                         {
-                            ResetOrb();
+                            ResetFlag();
                         }
                         break;
                     }
                 }
             }
-            return OrbState;
+            return FlagState;
         }
 
-        public CTFOrbState ChangeState(Sign sign)
+        public CTFlagState ChangeState(Sign sign)
         {
             lock (SyncRoot)
             {
-                switch (OrbState)
+                switch (FlagState)
                 {
-                    case CTFOrbState.OnEnemyPlayer:
+                    case CTFlagState.OnEnemyPlayer:
                     {
-                        _orbPlayer = null;
-                        _orbSign = sign;
-                        _orbState = CTFOrbState.OnGround;
+                        _flagPlayer = null;
+                        _flagSign = sign;
+                        _flagState = CTFlagState.OnGround;
                         break;
                     }
                 }
             }
-            return OrbState;
+            return FlagState;
         }
 
-        public void ResetOrb()
+        public void ResetFlag()
         {
             lock (SyncRoot)
             {
-                _orbPlayer = null;
-                _orbSign = null;
-                _orbState = CTFOrbState.InHomeShrine;
+                _flagPlayer = null;
+                _flagSign = null;
+                _flagState = CTFlagState.InHomeShrine;
             }
         }
     }

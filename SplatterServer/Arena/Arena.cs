@@ -29,9 +29,10 @@ namespace SplatterServer
             Normal = 0,
             Ended = 1,
             OneMinute = 2,
-            ChaosVictory = 3,
-            BalanceVictory = 4,
-            OrderVictory = 5,
+            RedVictory = 3,
+            BlueVictory = 4,
+            YellowVictory = 5,
+            GreenVictory = 6,
             CleanUp = 255,
         }
 
@@ -128,56 +129,62 @@ namespace SplatterServer
                 }
 
                 Ruleset = ruleset;
+                                
                 Grid = new Grid(grid);
-                ArenaTeams = new ArenaTeamCollection(Grid);
+
+                if (Grid.ShortGameName == null)
+                {
+                    if (Grid.GridId == 0)
+                    {
+                        Grid.ShortGameName = "Lake";
+                    }
+                    else if (Grid.GridId == 1)
+                    {
+                        Grid.ShortGameName = "Park";
+                    }
+                    else if (Grid.GridId == 2)
+                    {
+                        Grid.ShortGameName = "Castle";
+                    }
+                    else if (Grid.GridId == 3)
+                    {
+                        Grid.ShortGameName = "Silly";
+                    }
+                }
+
+                if (Ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.NoTeams) || Ruleset.Mode == ArenaRuleset.ArenaMode.FreeForAll)
+                {
+                    // FFA Mode: Only 1 team entry (NoTeam)
+                    ArenaTeams = new ArenaTeamCollection(1, 0, 0, 0, 0);
+                }
+                else
+                {
+                    switch(Grid.Name)
+                    {
+                        case "grid00":
+                            ArenaTeams = new ArenaTeamCollection(0, 1, 0, 0, 1);
+                            break;
+                        case "grid01":
+                            ArenaTeams = new ArenaTeamCollection(0, 1, 1, 1, 1);
+                            break;
+                        case "grid02":
+                            ArenaTeams = new ArenaTeamCollection(0, 0, 1, 1, 0);
+                            break;
+                        case "grid03":
+                            ArenaTeams = new ArenaTeamCollection(0, 1, 1, 1, 0);
+                            break;
+                        default: // Default to FFA/NoTeam if grid is unknown
+                            ArenaTeams = new ArenaTeamCollection(1, 0, 0, 0, 0);
+                            break;
+                    }                   
+                }
+
                 ArenaPlayers = new ArenaPlayerCollection();
                 ArenaPlayerHistory = new ArenaPlayerCollection();
                 Signs = new SignCollection();
                 Walls = new WallCollection();
                 Bolts = new BoltCollection();
-                ProjectileGroups = new ProjectileGroupCollection();
-
-                if (ArenaTeams.Chaos.Shrine.Power == 0) ArenaTeams.Chaos.Shrine.IsDisabled = true;
-                if (ArenaTeams.Balance.Shrine.Power == 0) ArenaTeams.Balance.Shrine.IsDisabled = true;
-                if (ArenaTeams.Order.Shrine.Power == 0) ArenaTeams.Order.Shrine.IsDisabled = true;
-
-                if (ArenaTeams.DisabledShrineCount == 0)
-                {
-                    if (Ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.TwoTeams))
-                    {
-                        switch (CryptoRandom.GetInt32(1, 3))
-                        {
-                            case 1:
-                                {
-                                    ArenaTeams.Chaos.Shrine.IsDisabled = true;
-                                    break;
-                                }
-                            case 2:
-                                {
-                                    ArenaTeams.Balance.Shrine.IsDisabled = true;
-                                    break;
-                                }
-                            case 3:
-                                {
-                                    ArenaTeams.Order.Shrine.IsDisabled = true;
-                                    break;
-                                }
-                        }
-                    }
-                }
-
-                if (Ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.NoTeams))
-                {
-                    ArenaTeams.Chaos.Shrine.IsDisabled = true;
-                    ArenaTeams.Balance.Shrine.IsDisabled = true;
-                    ArenaTeams.Order.Shrine.IsDisabled = true;
-                }
-
-                if (!Ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.NoTeams) && ArenaTeams.DisabledShrineCount >= 2)
-                {
-                    Network.Send(player, GamePacket.Outgoing.System.DirectTextMessage(player, "[System] Error creating arena."));
-                    return;
-                }
+                ProjectileGroups = new ProjectileGroupCollection();                                                                               
 
                 TriggerPulseTick = new Interval(5000, true);
                 ProcessingTick = new Interval(TickRate, false);
@@ -218,6 +225,8 @@ namespace SplatterServer
                 IsDurationLocked = false;
                 DebugFlags = ArenaSpecialFlag.ProjectileTracking;
 
+                Program.ServerForm.MainLog.WriteMessage(String.Format("ShortGameName: {0}", ShortGameName), Color.Blue);
+
                 if (ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.ExpEvent))
                 {
                     Program.ServerForm.AdminLog.WriteMessage(String.Format("[Admin] ({0}){1} -> Created an Event Exp Game ({2} EXP)", player.AccountId, player.ActiveCharacter.Name, player.PreferredEventExp), Color.Blue);
@@ -246,83 +255,38 @@ namespace SplatterServer
             {
                 lock (SyncRoot)
                 {
-                    State teamState = CurrentState == State.Ended || CurrentState == State.CleanUp ? EndState : CurrentState;
+                    // If it's FFA, the winning "Team" is NoTeam, and individual stats matter
+                    if (Ruleset.Mode == ArenaRuleset.ArenaMode.FreeForAll)
+                        return Team.NoTeam;
 
-                    if ((!ArenaTeams.Order.Shrine.IsDamaged || Ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.CaptureTheFlag)) && !ArenaTeams.Order.Shrine.IsIndestructible)
+                    State teamState = (CurrentState == State.Ended || CurrentState == State.CleanUp) ? EndState : CurrentState;
+
+                    // Check explicit victory states
+                    if (teamState == State.RedVictory) return Team.Red;
+                    if (teamState == State.BlueVictory) return Team.Blue;
+                    if (teamState == State.YellowVictory) return Team.Yellow;
+                    if (teamState == State.GreenVictory) return Team.Green;
+
+                    // If the game ended by time, find the team with the most points
+                    ArenaTeam leadingTeam = null;
+                    int maxPoints = -1;
+
+                    foreach (var team in ArenaTeams)
                     {
-                        if (teamState == State.OrderVictory)
+                        if (team.Team == Team.NoTeam) continue;
+
+                        // In Splatterball, points are often calculated by flag captures 
+                        // or cumulative player scores.
+                        int teamScore = ArenaPlayers.Where(p => p.ActiveTeam == team.Team).Sum(p => p.KillCount);
+                        if (teamScore > maxPoints)
                         {
-                            if ((ArenaTeams.Chaos.Shrine.IsDamaged || ArenaTeams.Chaos.Shrine.IsIndestructible) && (ArenaTeams.Balance.Shrine.IsDamaged || ArenaTeams.Balance.Shrine.IsIndestructible))
-                            {
-                                return Team.Order;
-                            }
-                        }
-                        else
-                        {
-                            if ((ArenaTeams.Chaos.Shrine.IsDead || ArenaTeams.Chaos.Shrine.IsIndestructible) && (ArenaTeams.Balance.Shrine.IsDead || ArenaTeams.Balance.Shrine.IsIndestructible))
-                            {
-                                return Team.Order;
-                            }
+                            maxPoints = teamScore;
+                            leadingTeam = team;
                         }
                     }
 
-                    if ((!ArenaTeams.Balance.Shrine.IsDamaged || Ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.CaptureTheFlag)) && !ArenaTeams.Balance.Shrine.IsIndestructible)
-                    {
-                        if (teamState == State.BalanceVictory)
-                        {
-                            if ((ArenaTeams.Chaos.Shrine.IsDamaged || ArenaTeams.Chaos.Shrine.IsIndestructible) && (ArenaTeams.Order.Shrine.IsDamaged || ArenaTeams.Order.Shrine.IsIndestructible))
-                            {
-                                return Team.Balance;
-                            }
-                        }
-                        else
-                        {
-                            if ((ArenaTeams.Chaos.Shrine.IsDead || ArenaTeams.Chaos.Shrine.IsIndestructible) && (ArenaTeams.Order.Shrine.IsDead || ArenaTeams.Order.Shrine.IsIndestructible))
-                            {
-                                return Team.Balance;
-                            }
-                        }
-                    }
-
-                    if ((!ArenaTeams.Chaos.Shrine.IsDamaged || Ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.CaptureTheFlag)) && !ArenaTeams.Chaos.Shrine.IsIndestructible)
-                    {
-                        if (teamState == State.ChaosVictory)
-                        {
-                            if ((ArenaTeams.Order.Shrine.IsDamaged || ArenaTeams.Order.Shrine.IsIndestructible) && (ArenaTeams.Balance.Shrine.IsDamaged || ArenaTeams.Balance.Shrine.IsIndestructible))
-                            {
-                                return Team.Chaos;
-                            }
-                        }
-                        else
-                        {
-                            if ((ArenaTeams.Order.Shrine.IsDead || ArenaTeams.Order.Shrine.IsIndestructible) && (ArenaTeams.Balance.Shrine.IsDead || ArenaTeams.Balance.Shrine.IsIndestructible))
-                            {
-                                return Team.Chaos;
-                            }
-                        }
-                    }
-
-                    if (Ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.GuildRules) && (CurrentState == State.Ended || CurrentState == State.CleanUp))
-                    {
-                        if (ArenaTeams.Order.Shrine.GuildPoints > ArenaTeams.Chaos.Shrine.GuildPoints && ArenaTeams.Order.Shrine.GuildPoints > ArenaTeams.Balance.Shrine.GuildPoints)
-                        {
-                            EndState = State.OrderVictory;
-                            return Team.Order;
-                        }
-                        if (ArenaTeams.Balance.Shrine.GuildPoints > ArenaTeams.Chaos.Shrine.GuildPoints && ArenaTeams.Balance.Shrine.GuildPoints > ArenaTeams.Order.Shrine.GuildPoints)
-                        {
-                            EndState = State.BalanceVictory;
-                            return Team.Balance;
-                        }
-                        if (ArenaTeams.Chaos.Shrine.GuildPoints > ArenaTeams.Order.Shrine.GuildPoints && ArenaTeams.Chaos.Shrine.GuildPoints > ArenaTeams.Balance.Shrine.GuildPoints)
-                        {
-                            EndState = State.ChaosVictory;
-                            return Team.Chaos;
-                        }
-                    }
+                    return leadingTeam?.Team ?? Team.NoTeam;
                 }
-
-                return Team.Neutral;
             }
         }
 
@@ -632,7 +596,7 @@ namespace SplatterServer
                 {
                     if (sign.IsCTFOrb && Ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.CaptureTheFlag))
                     {
-                        ArenaTeams.FindByTeam(sign.Team).ShrineOrb.ResetOrb();
+                        ArenaTeams.FindByTeam(sign.Team).Flag.ResetFlag();
                         Network.SendTo(this, GamePacket.Outgoing.System.DirectTextMessage(null, String.Format("The {0} orb has been returned to its shrine.", sign.Team)), Network.SendToType.Arena);
                     }
 
@@ -656,26 +620,26 @@ namespace SplatterServer
                         ArenaPlayer arenaPlayer = ArenaPlayers[p];
                         if (arenaPlayer == null) continue;
 
-                        if (!arenaPlayer.IsDamageable || arenaPlayer.ActiveTeam == Team.Neutral || arenaPlayer.IsInValhalla) continue;
+                        if (!arenaPlayer.IsDamageable || arenaPlayer.ActiveTeam == Team.NoTeam || arenaPlayer.IsInValhalla) continue;
 
                         if (arenaPlayer.BoundingBox.Collides(sign.BoundingBox))
                         {
                             ArenaTeam arenaTeam = ArenaTeams.FindByTeam(sign.Team);
 
-                            switch (arenaTeam.ShrineOrb.ChangeState(arenaPlayer))
+                            switch (arenaTeam.Flag.ChangeState(arenaPlayer))
                             {
-                                case CTFOrbState.InHomeShrine:
+                                case CTFlagState.InHomeShrine:
                                 {
-                                    Network.SendToArena(arenaPlayer, GamePacket.Outgoing.System.DirectTextMessage(arenaPlayer.WorldPlayer, String.Format("The {0} orb has been returned to its shrine.", arenaTeam.Shrine.Team)), true);
+                                    //Network.SendToArena(arenaPlayer, GamePacket.Outgoing.System.DirectTextMessage(arenaPlayer.WorldPlayer, String.Format("The {0} orb has been returned to its shrine.", arenaTeam.Shrine.Team)), true);
 
                                     Network.SendTo(this, GamePacket.Outgoing.Arena.ObjectDeath(sign.ObjectId), Network.SendToType.Arena);
                                     Signs.Remove(sign);
                                     break;
                                 }
-                                case CTFOrbState.OnEnemyPlayer:
+                                case CTFlagState.OnEnemyPlayer:
                                 {
-                                    Network.SendToArena(arenaPlayer, GamePacket.Outgoing.System.DirectTextMessage(arenaPlayer.WorldPlayer, String.Format("{0} has picked up the {1} orb!", arenaPlayer.ActiveCharacter.Name, arenaTeam.Shrine.Team)), false);
-                                    Network.Send(arenaPlayer.WorldPlayer, GamePacket.Outgoing.System.DirectTextMessage(arenaPlayer.WorldPlayer, String.Format("You have picked up the {0} orb!", arenaTeam.Shrine.Team)));
+                                    //Network.SendToArena(arenaPlayer, GamePacket.Outgoing.System.DirectTextMessage(arenaPlayer.WorldPlayer, String.Format("{0} has picked up the {1} orb!", arenaPlayer.ActiveCharacter.Name, arenaTeam.Shrine.Team)), false);
+                                    //Network.Send(arenaPlayer.WorldPlayer, GamePacket.Outgoing.System.DirectTextMessage(arenaPlayer.WorldPlayer, String.Format("You have picked up the {0} orb!", arenaTeam.Shrine.Team)));
 
                                     Network.SendTo(this, GamePacket.Outgoing.Arena.ObjectDeath(sign.ObjectId), Network.SendToType.Arena);
                                     Signs.Remove(sign);
@@ -712,7 +676,7 @@ namespace SplatterServer
                             {
                                 case SpellFriendlyType.NonFriendly:
                                 {
-                                    if (sign.Team != arenaPlayer.ActiveTeam || (sign.Team == Team.Neutral && sign.Owner != arenaPlayer))
+                                    if (sign.Team != arenaPlayer.ActiveTeam || (sign.Team == Team.NoTeam && sign.Owner != arenaPlayer))
                                     {
                                         if (Grid.LineToBoxIsBlocked(sign.AuraBoundingSphere.Center, arenaPlayer.BoundingBox)) continue;
 
@@ -725,7 +689,7 @@ namespace SplatterServer
                                 case SpellFriendlyType.Friendly:
                                 case SpellFriendlyType.FriendlyDead:
                                 {
-                                    if ((sign.Team == arenaPlayer.ActiveTeam || arenaPlayer.ActiveTeam == Team.Neutral || sign.Team == Team.Neutral) || (sign.Spell.NoTeam && sign.Owner == arenaPlayer))
+                                    if ((sign.Team == arenaPlayer.ActiveTeam || arenaPlayer.ActiveTeam == Team.NoTeam || sign.Team == Team.NoTeam) || (sign.Spell.NoTeam && sign.Owner == arenaPlayer))
                                     {
                                         if (Grid.LineToBoxIsBlocked(sign.AuraBoundingSphere.Center, arenaPlayer.BoundingBox)) continue;
 
@@ -764,11 +728,11 @@ namespace SplatterServer
                         ArenaPlayer arenaPlayer = ArenaPlayers[p];
                         if (arenaPlayer == null) continue;
 
-                        if (!arenaPlayer.IsDamageable || (sign.Team == arenaPlayer.ActiveTeam && arenaPlayer.ActiveTeam != Team.Neutral) || (!sign.Spell.NoTeam && sign.Owner == arenaPlayer) || !arenaPlayer.IsMoving || (arenaPlayer.IsInValhalla && sign.Owner != arenaPlayer)) continue;
+                        if (!arenaPlayer.IsDamageable || (sign.Team == arenaPlayer.ActiveTeam && arenaPlayer.ActiveTeam != Team.NoTeam) || (!sign.Spell.NoTeam && sign.Owner == arenaPlayer) || !arenaPlayer.IsMoving || (arenaPlayer.IsInValhalla && sign.Owner != arenaPlayer)) continue;
 
                         if (arenaPlayer.BoundingBox.Collides(sign.BoundingBox))
                         {
-                            if (sign.Team == Team.None && sign.Owner == arenaPlayer)
+                            if (sign.Team == Team.NoTeam && sign.Owner == arenaPlayer)
                             {
                                 if (Vector3.Distance(sign.BoundingBox.Origin, sign.Owner.BoundingBox.Origin) >= sign.OwnerDistance) continue;
                             }
@@ -803,8 +767,8 @@ namespace SplatterServer
             }
         }
 
-        public void ProcessProjectiles()
-        {
+        public void ProcessProjectiles()        {           
+
             Boolean doProjectileTracking = ProjectileTrackingTick.HasElapsed;
 
             Single adjustedTickDelta = CurrentTickDelta + (CurrentTickDelta * 0.085f);
@@ -816,6 +780,8 @@ namespace SplatterServer
                     Boolean hasCollided = false;
 
                     Projectile projectile = ProjectileGroups[i].Projectiles[j];
+
+                    Program.ServerForm.MainLog.WriteMessage(String.Format("Spell Name: {0}, X: {1}, Y: {2}", projectile.Spell.Name, projectile.Location.X, projectile.Location.Y), Color.Blue);
 
                     Single cosZRadians = (Single) Math.Cos(MathHelper.DegreesToRadians(projectile.Angle));
                     Single velocityDelta = projectile.Spell.Velocity * adjustedTickDelta;
@@ -992,7 +958,7 @@ namespace SplatterServer
                             !arenaPlayer.BoundingBox.Collides(projectile.BoundingBox))
                             continue;
 
-                        if ((arenaPlayer.ActiveTeam != ProjectileGroups[i].Team || Ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.FriendlyFire)) || arenaPlayer.ActiveTeam == Team.Neutral)
+                        if ((arenaPlayer.ActiveTeam != ProjectileGroups[i].Team || Ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.FriendlyFire)) || arenaPlayer.ActiveTeam == Team.NoTeam)
                         {
                             if (ProjectileGroups[i].Projectiles[j].Spell.DamageByDistanceTraveled)
                             {
@@ -1011,7 +977,7 @@ namespace SplatterServer
                             }
                             else
                             {
-                                if (Ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.FriendlyFire) && (ProjectileGroups[i].Owner.ActiveTeam == arenaPlayer.ActiveTeam && arenaPlayer.ActiveTeam != Team.Neutral))
+                                if (Ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.FriendlyFire) && (ProjectileGroups[i].Owner.ActiveTeam == arenaPlayer.ActiveTeam && arenaPlayer.ActiveTeam != Team.NoTeam))
                                 {
                                     SpellDamage spellDamage = new SpellDamage(ProjectileGroups[i].Projectiles[j].Spell);
 
@@ -1290,64 +1256,42 @@ namespace SplatterServer
 
         public void DoCaptureTheFlag(ArenaPlayer arenaPlayer)
         {
-            ArenaTeam shrineTeam = arenaPlayer.CurrentGridBlockFlagData.ShrineTeam;
+            // Find the flag team associated with the current block the player is standing on
+            ArenaTeam zoneTeam = arenaPlayer.CurrentGridBlockFlagData.ShrineTeam;
 
-            if (!arenaPlayer.IsAlive || shrineTeam == null) return;
+            if (!arenaPlayer.IsAlive || zoneTeam == null) return;
 
-            // Stepped in an Enemy Shrine
-            if (shrineTeam.Shrine.Team != arenaPlayer.ActiveTeam)
+            // 1. Stepped in an ENEMY zone: Try to pick up their flag
+            if (zoneTeam.Team != arenaPlayer.ActiveTeam && arenaPlayer.ActiveTeam != Team.NoTeam)
             {
-                switch (shrineTeam.ShrineOrb.OrbState)
+                if (zoneTeam.Flag.FlagState == CTFlagState.InHomeShrine)
                 {
-                    case CTFOrbState.InHomeShrine:
+                    // Ensure player isn't already carrying a flag
+                    if (!ArenaTeams.IsPlayerCarryingFlag(arenaPlayer))
                     {
-                        if (shrineTeam.Shrine.IsDead || shrineTeam.Shrine.IsIndestructible || ArenaTeams.IsPlayerCarryingOrb(arenaPlayer)) break;
-
-                        if (shrineTeam.ShrineOrb.ChangeState(arenaPlayer) == CTFOrbState.OnEnemyPlayer)
-                        {
-                            Network.SendToArena(arenaPlayer, GamePacket.Outgoing.System.DirectTextMessage(arenaPlayer.WorldPlayer, String.Format("{0} has picked up the {1} orb!", arenaPlayer.ActiveCharacter.Name, shrineTeam.Shrine.Team)), false);
-                            Network.Send(arenaPlayer.WorldPlayer, GamePacket.Outgoing.System.DirectTextMessage(arenaPlayer.WorldPlayer, String.Format("You have picked up the {0} orb!", shrineTeam.Shrine.Team)));
-                        }
-                        break;
+                        zoneTeam.Flag.ChangeState(arenaPlayer);
+                        Network.SendToArena(arenaPlayer, GamePacket.Outgoing.System.DirectTextMessage(null, $"{arenaPlayer.ActiveCharacter.Name} has stolen the {zoneTeam.Team} flag!"), false);
                     }
                 }
             }
-            // Stepped in Your Shrine
-            else
+            // 2. Stepped in YOUR OWN zone: Try to capture a flag you are carrying
+            else if (zoneTeam.Team == arenaPlayer.ActiveTeam)
             {
-                switch (shrineTeam.ShrineOrb.OrbState)
+                ArenaTeam carriedFlagTeam = ArenaTeams.GetCarriedFlagTeam(arenaPlayer);
+
+                if (carriedFlagTeam != null)
                 {
-                    case CTFOrbState.InHomeShrine:
-                    {
-                        ArenaTeam captureTeam = ArenaTeams.GetCarriedOrbTeam(arenaPlayer);
+                    // Capture Successful!
+                    carriedFlagTeam.Flag.ResetFlag();
 
-                        if (captureTeam == null || shrineTeam.Shrine.IsDead || shrineTeam.Shrine.IsIndestructible) break;
+                    // Award Experience
+                    Single experience = (arenaPlayer.ActiveCharacter.Level * 100);
+                    GivePlayerExperience(arenaPlayer, experience, ArenaPlayer.ExperienceType.Objective);
 
-                        if (captureTeam.ShrineOrb.ChangeState(arenaPlayer) == CTFOrbState.InHomeShrine)
-                        {
-                            Int32 biasAmount = 20;
+                    Network.SendToArena(arenaPlayer, GamePacket.Outgoing.System.DirectTextMessage(null, $"{arenaPlayer.ActiveCharacter.Name} captured the {carriedFlagTeam.Team} flag!"), false);
 
-                            captureTeam.Shrine.CurrentBias -= 20;
-
-                            if (captureTeam.Shrine.IsDead)
-                            {
-                                biasAmount = -captureTeam.Shrine.MaxBias & 0xFF;
-                            }
-                            else
-                            {
-                                biasAmount = -biasAmount & 0xFF;
-                            }
-
-                            Single experience = (arenaPlayer.ActiveCharacter.Level * 0.013f) * (ArenaPlayers.GetTeamPlayerCount(captureTeam.Shrine.Team) * 50);
-                            GivePlayerExperience(arenaPlayer, (arenaPlayer.ActiveCharacter.Class == Character.PlayerClass.Arcanist ? experience * 2 : experience), ArenaPlayer.ExperienceType.Objective);
-
-                            Network.SendToArena(arenaPlayer, GamePacket.Outgoing.System.DirectTextMessage(arenaPlayer.WorldPlayer, String.Format("{0} has captured the {1} orb!", arenaPlayer.ActiveCharacter.Name, captureTeam.Shrine.Team)), false);
-                            Network.Send(arenaPlayer.WorldPlayer, GamePacket.Outgoing.System.DirectTextMessage(arenaPlayer.WorldPlayer, String.Format("You have captured the {0} orb!", captureTeam.Shrine.Team)));
-
-                            Network.SendToArena(arenaPlayer, GamePacket.Outgoing.Arena.BiasedShrine(arenaPlayer, captureTeam.Shrine, (Byte)biasAmount), true);
-                        }
-                        break;
-                    }
+                    // Update the world state for all players
+                    Network.SendTo(this, GamePacket.Outgoing.World.ArenaState(this, arenaPlayer.WorldPlayer), Network.SendToType.Arena);
                 }
             }
         }
@@ -1554,7 +1498,7 @@ namespace SplatterServer
                     {
                         case SpellFriendlyType.NonFriendly:
                         {
-                            if ((projectile.Owner.ActiveTeam != arenaPlayer.ActiveTeam || (Ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.FriendlyFire) && arenaPlayer != projectile.Owner)) || (arenaPlayer.ActiveTeam == Team.Neutral && arenaPlayer != projectile.Owner))
+                            if ((projectile.Owner.ActiveTeam != arenaPlayer.ActiveTeam || (Ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.FriendlyFire) && arenaPlayer != projectile.Owner)) || (arenaPlayer.ActiveTeam == Team.NoTeam && arenaPlayer != projectile.Owner))
                             {
                                 SpellDamage spellDamage = new SpellDamage(projectile.Spell);
 
@@ -1591,7 +1535,7 @@ namespace SplatterServer
                         }
                         case SpellFriendlyType.Friendly:
                         {
-                            if (projectile.Owner.ActiveTeam == arenaPlayer.ActiveTeam || arenaPlayer.ActiveTeam == Team.Neutral || projectile.Owner.ActiveTeam == Team.Neutral)
+                            if (projectile.Owner.ActiveTeam == arenaPlayer.ActiveTeam || arenaPlayer.ActiveTeam == Team.NoTeam || projectile.Owner.ActiveTeam == Team.NoTeam)
                             {
                                 DoPlayerEffect(arenaPlayer, projectile.Owner, projectile.Spell, EffectType.Area);
                             }
@@ -1600,7 +1544,7 @@ namespace SplatterServer
                         }
                         case SpellFriendlyType.FriendlyDead:
                         {
-                            if (!arenaPlayer.IsAlive && (projectile.Owner.ActiveTeam == arenaPlayer.ActiveTeam || arenaPlayer.ActiveTeam == Team.Neutral || projectile.Owner.ActiveTeam == Team.Neutral))
+                            if (!arenaPlayer.IsAlive && (projectile.Owner.ActiveTeam == arenaPlayer.ActiveTeam || arenaPlayer.ActiveTeam == Team.NoTeam || projectile.Owner.ActiveTeam == Team.NoTeam))
                             {
                                 DoPlayerEffect(arenaPlayer, projectile.Owner, projectile.Spell, EffectType.Area);
                             }
@@ -1772,7 +1716,7 @@ namespace SplatterServer
             {
                 sourcePlayer.IsInCombat = true;
 
-                if ((targetPlayer.ActiveTeam != sourcePlayer.ActiveTeam || targetPlayer.ActiveTeam == Team.Neutral) && targetPlayer != sourcePlayer)
+                if ((targetPlayer.ActiveTeam != sourcePlayer.ActiveTeam || targetPlayer.ActiveTeam == Team.NoTeam) && targetPlayer != sourcePlayer)
                 {
                     sourcePlayer.ActiveCharacter.Statistics.DamageDone += spellDamage.Damage;
                     sourcePlayer.ActiveCharacter.Statistics.HealingDone += spellDamage.Healing;
@@ -1935,13 +1879,13 @@ namespace SplatterServer
 
                 if (Ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.CaptureTheFlag))
                 {
-                    ArenaTeam orbTeam = ArenaTeams.GetCarriedOrbTeam(arenaPlayer);
+                    ArenaTeam orbTeam = ArenaTeams.GetCarriedFlagTeam(arenaPlayer);
 
                     if (orbTeam != null)
                     {
-                        orbTeam.ShrineOrb.ResetOrb();
+                        orbTeam.Flag.ResetFlag();
 
-                        Network.SendToArena(arenaPlayer, GamePacket.Outgoing.System.DirectTextMessage(arenaPlayer.WorldPlayer, String.Format("The {0} orb has been returned to the its shrine.", orbTeam.Shrine.Team)), false);
+                        //Network.SendToArena(arenaPlayer, GamePacket.Outgoing.System.DirectTextMessage(arenaPlayer.WorldPlayer, String.Format("The {0} orb has been returned to the its shrine.", orbTeam.Shrine.Team)), false);
                     }
                 }
 
@@ -2008,37 +1952,37 @@ namespace SplatterServer
 
                 if (Ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.CaptureTheFlag))
                 {
-                    ArenaTeam orbTeam = ArenaTeams.GetCarriedOrbTeam(arenaPlayer);
+                    ArenaTeam orbTeam = ArenaTeams.GetCarriedFlagTeam(arenaPlayer);
 
                     if (orbTeam != null)
                     {
-                        Sign sign = new Sign(orbTeam.ShrineOrb.ObjectId, arenaPlayer, SpellManager.CTFOrbSpell, arenaPlayer.BoundingBox.Origin, arenaPlayer.Direction, new Byte[20])
+                        Sign sign = new Sign(orbTeam.Flag.ObjectId, arenaPlayer, SpellManager.CTFOrbSpell, arenaPlayer.BoundingBox.Origin, arenaPlayer.Direction, new Byte[20])
                                     {
-                                        Team = orbTeam.Shrine.Team
+                                        //Team = orbTeam.Shrine.Team
                                     };
 
                         if (sign.IsInWall(Grid))
                         {
-                            sign = new Sign(orbTeam.ShrineOrb.ObjectId, arenaPlayer, SpellManager.CTFOrbSpell, arenaPlayer.BoundingBox.Origin, (Single)(arenaPlayer.Direction + Math.PI), new Byte[20])
+                            sign = new Sign(orbTeam.Flag.ObjectId, arenaPlayer, SpellManager.CTFOrbSpell, arenaPlayer.BoundingBox.Origin, (Single)(arenaPlayer.Direction + Math.PI), new Byte[20])
                                     {
-                                        Team = orbTeam.Shrine.Team
+                                        //Team = orbTeam.Shrine.Team
                                     };
                         }
 
                         if (sign.BoundingBox.IsBelowDeathZ || sign.IsInWall(Grid))
                         {
-                            orbTeam.ShrineOrb.ResetOrb();
+                            orbTeam.Flag.ResetFlag();
 
                             Network.SendTo(this, GamePacket.Outgoing.System.DirectTextMessage(null, String.Format("The {0} orb has been returned to its shrine.", sign.Team)), Network.SendToType.Arena);
                         }
                         else
                         {
-                            if (orbTeam.ShrineOrb.ChangeState(sign) == CTFOrbState.OnGround)
+                            if (orbTeam.Flag.ChangeState(sign) == CTFlagState.OnGround)
                             {
                                 Signs.Add(sign);
 
-                                Network.SendToArena(arenaPlayer, GamePacket.Outgoing.System.DirectTextMessage(arenaPlayer.WorldPlayer, String.Format("The {0} orb has been dropped by {1}.", orbTeam.Shrine.Team, arenaPlayer.ActiveCharacter.Name)), false);
-                                Network.Send(arenaPlayer.WorldPlayer, GamePacket.Outgoing.System.DirectTextMessage(arenaPlayer.WorldPlayer, String.Format("You have dropped the {0} orb!", orbTeam.Shrine.Team)));
+                                //Network.SendToArena(arenaPlayer, GamePacket.Outgoing.System.DirectTextMessage(arenaPlayer.WorldPlayer, String.Format("The {0} orb has been dropped by {1}.", orbTeam.Shrine.Team, arenaPlayer.ActiveCharacter.Name)), false);
+                                //Network.Send(arenaPlayer.WorldPlayer, GamePacket.Outgoing.System.DirectTextMessage(arenaPlayer.WorldPlayer, String.Format("You have dropped the {0} orb!", orbTeam.Shrine.Team)));
 
                                 Network.SendToArena(arenaPlayer, GamePacket.Outgoing.Arena.CastSignEx(arenaPlayer, sign), true);
                             }
@@ -2051,7 +1995,7 @@ namespace SplatterServer
 
                 if (targetArenaPlayer != null)
                 {
-                    if (arenaPlayer.ActiveTeam != targetArenaPlayer.ActiveTeam || arenaPlayer.ActiveTeam == Team.Neutral)
+                    if (arenaPlayer.ActiveTeam != targetArenaPlayer.ActiveTeam || arenaPlayer.ActiveTeam == Team.NoTeam)
                     {
                         Single killerAdd;
 
@@ -2111,7 +2055,7 @@ namespace SplatterServer
                         }
                     }
 
-                    if (arenaPlayer != targetArenaPlayer && (arenaPlayer.ActiveTeam != targetArenaPlayer.ActiveTeam || arenaPlayer.ActiveTeam == Team.Neutral))
+                    if (arenaPlayer != targetArenaPlayer && (arenaPlayer.ActiveTeam != targetArenaPlayer.ActiveTeam || arenaPlayer.ActiveTeam == Team.NoTeam))
                     {
                         Single experience = 75 + (targetArenaPlayer.ActiveCharacter.Level*14) + Math.Max(0, (arenaPlayer.ActiveCharacter.Level - targetArenaPlayer.ActiveCharacter.Level)*18);
                         GivePlayerExperience(targetArenaPlayer, experience, ArenaPlayer.ExperienceType.Combat);
@@ -2176,7 +2120,7 @@ namespace SplatterServer
             {
                 if (arenaPlayer.IsAlive || (Ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.NoTapping) && !arenaPlayer.WorldPlayer.IsAdmin)) return;
                 
-                if (arenaPlayer.ActiveTeam == Team.Neutral)
+                if (arenaPlayer.ActiveTeam == Team.NoTeam)
                 {
                     if (arenaPlayer.OwnerArena.Ruleset.Mode != ArenaRuleset.ArenaMode.FreeForAll)
                     {
@@ -2314,7 +2258,7 @@ namespace SplatterServer
                 {
                     case SpellFriendlyType.NonFriendly:
                     {
-                        if (targetArenaPlayer.IsAlive && (arenaPlayer.ActiveTeam != targetArenaPlayer.ActiveTeam || targetArenaPlayer.ActiveTeam == Team.Neutral))
+                        if (targetArenaPlayer.IsAlive && (arenaPlayer.ActiveTeam != targetArenaPlayer.ActiveTeam || targetArenaPlayer.ActiveTeam == Team.NoTeam))
                         {
                             DoPlayerDamage(targetArenaPlayer, arenaPlayer, spell, null, false);
 
@@ -2328,7 +2272,7 @@ namespace SplatterServer
 
                     case SpellFriendlyType.Friendly:
                     {
-                        if (targetArenaPlayer.IsAlive && ((arenaPlayer.ActiveTeam == targetArenaPlayer.ActiveTeam || arenaPlayer.ActiveTeam == Team.Neutral) || targetArenaPlayer.ActiveTeam == Team.Neutral))
+                        if (targetArenaPlayer.IsAlive && ((arenaPlayer.ActiveTeam == targetArenaPlayer.ActiveTeam || arenaPlayer.ActiveTeam == Team.NoTeam) || targetArenaPlayer.ActiveTeam == Team.NoTeam))
                         {
                             DoPlayerEffect(arenaPlayer, arenaPlayer, spell, EffectType.Caster);
                             if (!DoPlayerEffect(targetArenaPlayer, arenaPlayer, spell, EffectType.Target)) return false;
@@ -2339,7 +2283,7 @@ namespace SplatterServer
 
                     case SpellFriendlyType.FriendlyDead:
                     {
-                        if (!targetArenaPlayer.IsAlive && ((arenaPlayer.ActiveTeam == targetArenaPlayer.ActiveTeam || arenaPlayer.ActiveTeam == Team.Neutral) || targetArenaPlayer.ActiveTeam == Team.Neutral))
+                        if (!targetArenaPlayer.IsAlive && ((arenaPlayer.ActiveTeam == targetArenaPlayer.ActiveTeam || arenaPlayer.ActiveTeam == Team.NoTeam) || targetArenaPlayer.ActiveTeam == Team.NoTeam))
                         {
                             DoPlayerEffect(arenaPlayer, arenaPlayer, spell, EffectType.Caster);
                             if (!DoPlayerEffect(targetArenaPlayer, arenaPlayer, spell, EffectType.Target)) return false;

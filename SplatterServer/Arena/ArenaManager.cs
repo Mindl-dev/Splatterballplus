@@ -81,36 +81,41 @@ namespace SplatterServer
 
                             Team winningTeam = arena.WinningTeam;
 
-                            if (arena.CountdownTick == null && winningTeam != Team.Neutral)
+                            if (arena.CountdownTick == null && winningTeam != Team.NoTeam)
                             {
                                 switch (winningTeam)
                                 {
-                                    case Team.Chaos:
+                                    case Team.Red:
                                     {
-                                        arena.CurrentState = Arena.State.ChaosVictory;
+                                        arena.CurrentState = Arena.State.RedVictory;
                                         break;
                                     }
-                                    case Team.Balance:
+                                    case Team.Yellow:
                                     {
-                                        arena.CurrentState = Arena.State.BalanceVictory;
+                                        arena.CurrentState = Arena.State.YellowVictory;
                                         break;
                                     }
-                                    case Team.Order:
+                                    case Team.Blue:
                                     {
-                                        arena.CurrentState = Arena.State.OrderVictory;
+                                        arena.CurrentState = Arena.State.BlueVictory;
+                                        break;
+                                    }
+                                    case Team.Green:
+                                    {
+                                        arena.CurrentState = Arena.State.GreenVictory;
                                         break;
                                     }
                                 }
 
                                 arena.CountdownTick = new Interval(29000, false);
                             }
-                            else if (winningTeam == Team.Neutral)
+                            else if (winningTeam == Team.NoTeam)
                             {
                                 arena.CurrentState = Arena.State.Normal;
                                 arena.CountdownTick = null;
                             }
 
-                            if (arena.Ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.GuildRules))
+                            /*if (arena.Ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.GuildRules))
                             {
                                 if (arena.GuildRulesBroadcast.HasElapsed)
                                 {
@@ -195,7 +200,7 @@ namespace SplatterServer
                                     }
                                 }
 
-                            }
+                            }*/
 
                             if (arena.CountdownTick != null && arena.CountdownTick.HasElapsed)
                             {

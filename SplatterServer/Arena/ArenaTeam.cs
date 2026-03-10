@@ -1,18 +1,31 @@
 ﻿using System;
 using Helper;
 
+
 namespace SplatterServer
 {
-    public class ArenaTeam
+    public enum Team
     {
-        public Shrine Shrine;
-        public CTFOrb ShrineOrb;
-        
-        public ArenaTeam()
-        {            
-            Int16 objectId = 0;                      
+        NoTeam,
+        Red,
+        Blue,
+        Yellow,
+        Green,
+    }
+    public class ArenaTeam 
+    {   
+        public string Name { get; set; }
 
-            ShrineOrb = new CTFOrb(Shrine.Team, objectId);
+        public Team Team { get; set; }
+
+        public CTFlag Flag;
+        public ArenaTeam(Team Team)
+        {            
+            Int16 objectId = 0;
+
+            this.Team = Team;
+
+            Flag = new CTFlag(this.Team, objectId);
         }
     }
 }

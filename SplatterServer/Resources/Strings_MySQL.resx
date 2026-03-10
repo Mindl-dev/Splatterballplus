@@ -168,6 +168,9 @@
   <data name="NonQuery_Update_ServerSettings_SetExpMultiplier" xml:space="preserve">
     <value>UPDATE `server_settings` SET exp_multiplier = @exp_multiplier</value>
   </data>
+  <data name="Query_Select_AccountData" xml:space="preserve">
+    <value>SELECT * FROM `accounts` WHERE username = @username LIMIT 1</value>
+  </data>
   <data name="Query_Select_Account_IsSerialBanned" xml:space="preserve">
     <value>SELECT `serial` FROM `banned_serials` WHERE serial = @serial LIMIT 1</value>
   </data>
