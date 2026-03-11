@@ -808,7 +808,7 @@ namespace SplatterServer
                     inStream.Seek(2, SeekOrigin.Begin);
 
                     UInt32 gridId = (Byte)inStream.ReadByte();
-                    Byte levelRange = (Byte)inStream.ReadByte();
+                    Byte timelimit = (Byte)inStream.ReadByte();
 
                     Grid grid = GridManager.Grids.FindById(gridId);
 
@@ -818,11 +818,11 @@ namespace SplatterServer
                     {
                         if (player.PreferredArenaMode == ArenaRuleset.ArenaMode.Custom)
                         {
-                            new SplatterServer.Arena(player, grid, levelRange, new ArenaRuleset(player.PreferredArenaRules));
+                            new SplatterServer.Arena(player, grid, timelimit, new ArenaRuleset(player.PreferredArenaRules));
                         }
                         else
                         {
-                            new SplatterServer.Arena(player, grid, levelRange, new ArenaRuleset(player.PreferredArenaMode));
+                            new SplatterServer.Arena(player, grid, timelimit, new ArenaRuleset(player.PreferredArenaMode));
                         }
                     }
                 }
@@ -2093,11 +2093,22 @@ namespace SplatterServer
                     outStream.WriteByte(arena.LevelRange);
                     outStream.WriteByte(arena.TableId);
                     outStream.WriteByte(Convert.ToByte(arena.ArenaPlayers.Count));
-                    outStream.WriteByte((Byte)(arena.ArenaTeams.IsFFA ? 1 : 0)); // FFA
-                    outStream.WriteByte((Byte)(arena.ArenaTeams.HasTeam(Team.Red) ? 1 : 0));    // Offset 9
-                    outStream.WriteByte((Byte)(arena.ArenaTeams.HasTeam(Team.Yellow) ? 1 : 0));   // Offset 10
-                    outStream.WriteByte((Byte)(arena.ArenaTeams.HasTeam(Team.Blue) ? 1 : 0)); // Offset 11
-                    outStream.WriteByte((Byte)(arena.ArenaTeams.HasTeam(Team.Green) ? 1 : 0));  // Offset 12
+                    outStream.WriteByte(0x00);
+                    if (arena.Ruleset.Mode == ArenaRuleset.ArenaMode.FreeForAll)
+                    {
+                        // Match the "Yellow Dummy" strategy
+                        outStream.WriteByte(0x00); // Position 10 (Red)
+                        outStream.WriteByte(0x00); // Position 11 (Blue)
+                        outStream.WriteByte(0x01); // Position 12 (Yellow) - Enabled for FFA
+                        outStream.WriteByte(0x00); // Position 13 (Green)
+                    }
+                    else
+                    {
+                        outStream.WriteByte((Byte)(arena.ArenaTeams.HasTeam(Team.Red) ? 1 : 0));    // Pos 10
+                        outStream.WriteByte((Byte)(arena.ArenaTeams.HasTeam(Team.Blue) ? 1 : 0));   // Pos 11
+                        outStream.WriteByte((Byte)(arena.ArenaTeams.HasTeam(Team.Yellow) ? 1 : 0)); // Pos 12
+                        outStream.WriteByte((Byte)(arena.ArenaTeams.HasTeam(Team.Green) ? 1 : 0));  // Pos 13
+                    }
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
@@ -2115,17 +2126,14 @@ namespace SplatterServer
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
-                    outStream.Write(BitConverter.GetBytes(NetHelper.FlipBytes(arena.TimeLimit)), 0, 2);
+                    outStream.Write(BitConverter.GetBytes(NetHelper.FlipBytes(arena.TimeLimit)), 0, 2); //31
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
-                    outStream.Write(BitConverter.GetBytes(NetHelper.FlipBytes((Int16)arena.Duration.ElapsedSeconds)), 0, 2);
+                    outStream.Write(BitConverter.GetBytes(NetHelper.FlipBytes((Int16)arena.Duration.ElapsedSeconds)), 0, 2); //35
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte((Byte)arena.CurrentState);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);                    
+                    outStream.WriteByte(0x00); //40
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
@@ -2135,14 +2143,7 @@ namespace SplatterServer
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(arena.CountdownTick == null ? (Byte) 0x00 : (Byte) (119 - (arena.CountdownTick.ElapsedSeconds*4)));
-                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00); //50
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
@@ -2152,6 +2153,20 @@ namespace SplatterServer
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00); //60
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    if (arena.EndState == SplatterServer.Arena.State.Ended)
+                        outStream.Write(BitConverter.GetBytes(NetHelper.FlipBytes((Int32)arena.EndState)), 0, 4); //68
+                    else
+                        outStream.Write(BitConverter.GetBytes(0), 0, 4); //68
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00); //70
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
@@ -2161,8 +2176,9 @@ namespace SplatterServer
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00); //80
                     outStream.WriteByte(0x00);
-                    outStream.WriteByte(player.LastArenaId);
+                    outStream.WriteByte(0x00);
                     return outStream;
                 }
                 public static MemoryStream ArenaForceEndState(SplatterServer.Arena arena, SplatterServer.Player player)
@@ -2178,55 +2194,22 @@ namespace SplatterServer
                     outStream.WriteByte(arena.LevelRange);
                     outStream.WriteByte(arena.TableId);
                     outStream.WriteByte(Convert.ToByte(arena.ArenaPlayers.Count));
-                    outStream.WriteByte((Byte)(arena.ArenaTeams.IsFFA ? 1 : 0)); // FFA
-                    outStream.WriteByte((Byte)(arena.ArenaTeams.HasTeam(Team.Red) ? 1 : 0));    // Offset 9
-                    outStream.WriteByte((Byte)(arena.ArenaTeams.HasTeam(Team.Yellow) ? 1 : 0));   // Offset 10
-                    outStream.WriteByte((Byte)(arena.ArenaTeams.HasTeam(Team.Blue) ? 1 : 0)); // Offset 11
-                    outStream.WriteByte((Byte)(arena.ArenaTeams.HasTeam(Team.Green) ? 1 : 0));  // Offset 12
                     outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.Write(BitConverter.GetBytes(NetHelper.FlipBytes(arena.TimeLimit)), 0, 2);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.Write(BitConverter.GetBytes(NetHelper.FlipBytes((Int16)arena.Duration.ElapsedSeconds)), 0, 2);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte((Byte)SplatterServer.Arena.State.Ended);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(0x00);
-                    outStream.WriteByte(arena.CountdownTick == null ? (Byte)0x00 : (Byte)(119 - (arena.CountdownTick.ElapsedSeconds * 4)));
+                    if (arena.Ruleset.Mode == ArenaRuleset.ArenaMode.FreeForAll)
+                    {
+                        // Match the "Yellow Dummy" strategy
+                        outStream.WriteByte(0x00); // Position 10 (Red)
+                        outStream.WriteByte(0x00); // Position 11 (Blue)
+                        outStream.WriteByte(0x01); // Position 12 (Yellow) - Enabled for FFA
+                        outStream.WriteByte(0x00); // Position 13 (Green)
+                    }
+                    else
+                    {
+                        outStream.WriteByte((Byte)(arena.ArenaTeams.HasTeam(Team.Red) ? 1 : 0));    // Pos 10
+                        outStream.WriteByte((Byte)(arena.ArenaTeams.HasTeam(Team.Blue) ? 1 : 0));   // Pos 11
+                        outStream.WriteByte((Byte)(arena.ArenaTeams.HasTeam(Team.Yellow) ? 1 : 0)); // Pos 12
+                        outStream.WriteByte((Byte)(arena.ArenaTeams.HasTeam(Team.Green) ? 1 : 0));  // Pos 13
+                    }
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
@@ -2246,8 +2229,59 @@ namespace SplatterServer
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
                     outStream.WriteByte(0x00);
+                    outStream.Write(BitConverter.GetBytes(NetHelper.FlipBytes(arena.TimeLimit)), 0, 2); //31
                     outStream.WriteByte(0x00);
-                    outStream.WriteByte(player.LastArenaId);
+                    outStream.WriteByte(0x00);
+                    outStream.Write(BitConverter.GetBytes(NetHelper.FlipBytes((Int16)arena.Duration.ElapsedSeconds)), 0, 2); //35     
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);                    
+                    outStream.WriteByte(0x00); //40
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00); //50
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00); //60
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    if (arena.EndState == SplatterServer.Arena.State.Ended)
+                        outStream.Write(BitConverter.GetBytes(NetHelper.FlipBytes((Int32)arena.EndState)), 0, 4); //68
+                    else
+                        outStream.Write(BitConverter.GetBytes(0), 0, 4); //68
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00); //70
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00); //80
+                    outStream.WriteByte(0x00);
+                    outStream.WriteByte(0x00);      
                     return outStream;
                 }
                 public static MemoryStream ArenaDeleted(SplatterServer.Arena arena)

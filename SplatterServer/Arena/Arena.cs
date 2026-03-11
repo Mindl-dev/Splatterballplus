@@ -88,7 +88,7 @@ namespace SplatterServer
 
         public Single CurrentTickDelta;
 
-        public Arena(Player player, Grid grid, Byte levelRange, ArenaRuleset ruleset)
+        public Arena(Player player, Grid grid, Byte timelimit, ArenaRuleset ruleset)
         {
             lock (ArenaManager.Arenas.SyncRoot)
             {
@@ -202,7 +202,7 @@ namespace SplatterServer
                     GameName = GameName.Substring(0, 19);
                 }
 
-                if (Ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.NoTeams))
+                /*if (Ruleset.Rules.HasFlag(ArenaRuleset.ArenaRule.NoTeams))
                 {
                     Duration = new Interval((Grid.TimeLimit / 2) * 1000, false);
                     TimeLimit = (Int16)(Grid.TimeLimit/2);
@@ -212,18 +212,37 @@ namespace SplatterServer
                 {
                     Duration = new Interval(Grid.TimeLimit * 1000, false);
                     TimeLimit = Grid.TimeLimit;
-                }
+                }*/
 
 				IdleDuration = new Interval(300000, false);
                 ShortGameName = Grid.ShortGameName;
 	            FounderCharId = player.ActiveCharacter.CharacterId;
-                Founder = player.ActiveCharacter.Name;
-                LevelRange = levelRange;
+                Founder = player.ActiveCharacter.Name;                
                 CurrentState = State.Normal;
                 MaxPlayers = Grid.MaxPlayers;
                 EndState = State.Normal;
                 IsDurationLocked = false;
                 DebugFlags = ArenaSpecialFlag.ProjectileTracking;
+
+                switch(timelimit)
+                {
+                    case 0x21:
+                        TimeLimit = 900;
+                        Duration = new Interval(TimeLimit * 1000, false);
+                        break;
+                    case 0x22:
+                        TimeLimit = 1800;
+                        Duration = new Interval(TimeLimit * 1000, false);
+                        break;
+                    case 0x23:
+                        TimeLimit = 2700;
+                        Duration = new Interval(TimeLimit * 1000, false);
+                        break;
+                    case 0x24:
+                        TimeLimit = 3600;
+                        Duration = new Interval(TimeLimit * 1000, false);
+                        break;
+                }
 
                 Program.ServerForm.MainLog.WriteMessage(String.Format("ShortGameName: {0}", ShortGameName), Color.Blue);
 
@@ -292,6 +311,8 @@ namespace SplatterServer
 
         private void ProcessArena()
         {
+            Program.ServerForm.MainLog.WriteMessage(String.Format("Arena End State: {0}, Arena Current State: {1}", this.EndState, CurrentState), Color.Red);
+
             while (CurrentState != State.Ended)
             {
                 if (!ProcessingTick.HasElapsed)

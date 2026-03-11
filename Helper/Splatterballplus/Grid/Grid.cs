@@ -244,7 +244,7 @@ namespace Helper
                 GameName = NativeMethods.GetPrivateProfileString(keyName, "name", arenaDatFilename);
                 ShortGameName = NativeMethods.GetPrivateProfileString(keyName, "short_name", arenaDatFilename);
                 MaxPlayers = NativeMethods.GetPrivateProfileByte(keyName, "maxplayers", arenaDatFilename);
-                TimeLimit = NativeMethods.GetPrivateProfileInt16(keyName, "timelimit", arenaDatFilename);
+                TimeLimit = NativeMethods.GetPrivateProfileInt16(keyName, "opentime", arenaDatFilename);
 
                 LoadTriggers();
                 LoadThins();
